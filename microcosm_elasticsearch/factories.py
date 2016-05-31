@@ -28,23 +28,19 @@ def configure_elasticsearch_client(graph):
     :returns: an Elasticsearch client instance of the configured name
 
     """
-    if graph.metadata.testing:
-        from mock import MagicMock
-        return MagicMock()
+    if graph.config.elasticsearch_client.use_aws4auth:
+        kwargs = _configure_aws4auth(graph)
     else:
-        if graph.config.elasticsearch_client.use_aws4auth:
-            kwargs = _configure_aws4auth(graph)
-        else:
-            kwargs = dict(
-                hosts=[graph.config.elasticsearch_client.host]
-            )
+        kwargs = dict(
+            hosts=[graph.config.elasticsearch_client.host]
+        )
 
-        if graph.config.elasticsearch_client.use_python2_serializer:
-            kwargs.update(dict(
-                serializer=JSONSerializerPython2(),
-            ))
+    if graph.config.elasticsearch_client.use_python2_serializer:
+        kwargs.update(dict(
+            serializer=JSONSerializerPython2(),
+        ))
 
-        return Elasticsearch(**kwargs)
+    return Elasticsearch(**kwargs)
 
 
 def _configure_aws4auth(graph):
