@@ -12,6 +12,31 @@ Elasticsearch configuration using [microcosm](https://github.com/globality-corp/
     graph = create_object_graph(name="foo")
     graph.use("elasticsearch_client")
 
+    # create an index
+    graph.elasticsearch_client.indices.create(
+        index="my-index",
+        body=dict(
+            settings=dict(
+                "number_of_shards": 1,
+                "number_of_replicas": 0,
+            )
+        )
+    )
+
+    # bulk index documents
+    from elasticsearch.helpers import streaming_bulk
+    docs_generator = some_generator_expression_yielding_dicts
+    for ok, result in streaming_bulk(
+        graph.elasticsearch_client,
+        docs_generator,
+        index="my-index",
+        doc_type="my-doc-type",
+        chunk_size=100,
+        refresh=True,
+        ):
+        if not ok:
+            raise RuntimeError("Bulk indexing failed for batch!")
+
 
 ## Convention
 
