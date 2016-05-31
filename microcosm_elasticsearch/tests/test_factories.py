@@ -30,7 +30,7 @@ def test_configure_elasticsearch_client_with_aws4auth():
         return dict(
             elasticsearch_client=dict(
                 aws_access_key_id='aws-access-key-id',
-                aws_secret_key='aws-secret-key',
+                aws_secret_access_key='aws-secret-access-key',
                 aws_region='aws-region-1',
                 use_aws4auth=True,
             )

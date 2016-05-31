@@ -47,9 +47,12 @@ Elasticsearch configuration using [microcosm](https://github.com/globality-corp/
 
 ## Configuration
 
-When using with an AWS Elasticsearch instance, set proper AWS environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION), and use:
+When using with an AWS Elasticsearch instance, use:
 
     config.elasticsearch_client.use_aws4auth = True
+    config.elasticsearch_client.aws_access_key_id = 'aws-access-key-id'  # Will try to read from AWS_ACCESS_KEY_ID env var. by default
+    config.elasticsearch_client.aws_secret_access_key = 'aws-secret-access-key'  # Will try to read from AWS_SECRET_ACCESS_KEY env var. by default
+    config.elasticsearch_client.aws_region = 'aws-region'  # Will try to read from AWS_REGION env var. by default
 
 When configuring for running on an EC2 instance and use the instance's IAM role-provided AWS credentials:
 
