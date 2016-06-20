@@ -15,7 +15,7 @@ from microcosm_elasticsearch.serialization import JSONSerializerPython2
 @defaults(
     aws_access_key_id=environ.get('AWS_ACCESS_KEY_ID'),
     aws_region=environ.get('AWS_REGION'),
-    aws_secret_key=environ.get('AWS_SECRET_ACCESS_KEY'),
+    aws_secret_access_key=environ.get('AWS_SECRET_ACCESS_KEY'),
     host='localhost:9200',
     use_aws4auth=False,
     use_aws_instance_metadata=False,
@@ -28,23 +28,19 @@ def configure_elasticsearch_client(graph):
     :returns: an Elasticsearch client instance of the configured name
 
     """
-    if graph.metadata.testing:
-        from mock import MagicMock
-        return MagicMock()
+    if graph.config.elasticsearch_client.use_aws4auth:
+        kwargs = _configure_aws4auth(graph)
     else:
-        if graph.config.elasticsearch_client.use_aws4auth:
-            kwargs = _configure_aws4auth(graph)
-        else:
-            kwargs = dict(
-                hosts=[graph.config.elasticsearch_client.host]
-            )
+        kwargs = dict(
+            hosts=[graph.config.elasticsearch_client.host]
+        )
 
-        if graph.config.elasticsearch_client.use_python2_serializer:
-            kwargs.update(dict(
-                serializer=JSONSerializerPython2(),
-            ))
+    if graph.config.elasticsearch_client.use_python2_serializer:
+        kwargs.update(dict(
+            serializer=JSONSerializerPython2(),
+        ))
 
-        return Elasticsearch(**kwargs)
+    return Elasticsearch(**kwargs)
 
 
 def _configure_aws4auth(graph):
@@ -60,12 +56,12 @@ def _configure_aws4auth(graph):
         provider = InstanceMetadataProvider(iam_role_fetcher=InstanceMetadataFetcher(timeout=1000, num_attempts=2))
         creds = provider.load()
         aws_access_key_id = creds.access_key
-        aws_secret_key = creds.secret_key
+        aws_secret_access_key = creds.secret_key
     else:
         aws_access_key_id = graph.config.elasticsearch_client.aws_access_key_id
-        aws_secret_key = graph.config.elasticsearch_client.aws_secret_key
+        aws_secret_access_key = graph.config.elasticsearch_client.aws_secret_access_key
 
-    awsauth = AWS4Auth(aws_access_key_id, aws_secret_key, aws_region, 'es')
+    awsauth = AWS4Auth(aws_access_key_id, aws_secret_access_key, aws_region, 'es')
 
     return dict(
         hosts=[{'host': graph.config.elasticsearch_client.host, 'port': 443}],

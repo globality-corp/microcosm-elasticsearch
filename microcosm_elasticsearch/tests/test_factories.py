@@ -1,10 +1,10 @@
-from os import environ
+from requests_aws4auth.exceptions import NoSecretKeyError
 
-
+from elasticsearch import Elasticsearch
 from hamcrest import (
     assert_that,
     calling,
-    equal_to,
+    instance_of,
     is_,
     raises,
 )
@@ -18,9 +18,7 @@ def test_configure_elasticsearch_client_with_defaults():
 
     """
     graph = create_object_graph(name="test", testing=True)
-
-    # assert_that(graph.logger, is_(equal_to(getLogger("test"))))
-    # assert_that(graph.logger.getEffectiveLevel(), is_(equal_to(INFO)))
+    assert_that(graph.elasticsearch_client, is_(instance_of(Elasticsearch)))
 
 
 def test_configure_elasticsearch_client_with_aws4auth():
@@ -31,13 +29,16 @@ def test_configure_elasticsearch_client_with_aws4auth():
     def loader(metadata):
         return dict(
             elasticsearch_client=dict(
+                aws_access_key_id='aws-access-key-id',
+                aws_secret_access_key='aws-secret-access-key',
+                aws_region='aws-region-1',
                 use_aws4auth=True,
             )
         )
 
     graph = create_object_graph(name="test", testing=True, loader=loader)
 
-    # assert_that(graph.logger.getEffectiveLevel(), is_(equal_to(DEBUG)))
+    assert_that(graph.elasticsearch_client, is_(instance_of(Elasticsearch)))
 
 
 def test_configure_elasticsearch_client_with_aws4auth_requires_credentials():
@@ -53,7 +54,7 @@ def test_configure_elasticsearch_client_with_aws4auth_requires_credentials():
         )
 
     graph = create_object_graph(name="test", loader=loader)
-    assert_that(calling(graph.use).with_args("elasticsearch_client"), raises(AttributeError))
+    assert_that(calling(graph.use).with_args("elasticsearch_client"), raises(NoSecretKeyError))
 
 
 def test_configure_elasticsearch_client_with_python_2_serializer_works():
@@ -69,4 +70,4 @@ def test_configure_elasticsearch_client_with_python_2_serializer_works():
         )
 
     graph = create_object_graph(name="test", loader=loader)
-    assert_that(type(graph.elasticsearch_client.serializer), object)
+    assert_that(graph.elasticsearch_client, is_(instance_of(Elasticsearch)))
