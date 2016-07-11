@@ -57,16 +57,20 @@ def _configure_aws4auth(graph):
         credentials = provider.get_credentials()
         aws_access_key_id = credentials.access_key
         aws_secret_access_key = credentials.secret_key
+        awsauth_kwargs = dict(
+            session_token=credentials.token,
+        )
     else:
         aws_access_key_id = graph.config.elasticsearch_client.aws_access_key_id
         aws_secret_access_key = graph.config.elasticsearch_client.aws_secret_access_key
+        awsauth_kwargs = {}
 
     awsauth = AWS4Auth(
         aws_access_key_id,
         aws_secret_access_key,
         aws_region,
         'es',
-        session_token=credentials.token,
+        **awsauth_kwargs
     )
 
     return dict(
