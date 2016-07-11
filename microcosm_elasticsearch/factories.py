@@ -4,7 +4,7 @@ Factory that configures Elasticsearch client.
 """
 from os import environ
 
-from botocore.credentials import InstanceMetadataProvider, InstanceMetadataFetcher
+import boto3
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from microcosm.api import defaults
 from requests_aws4auth import AWS4Auth
@@ -53,15 +53,21 @@ def _configure_aws4auth(graph):
     aws_region = graph.config.elasticsearch_client.aws_region
     if graph.config.elasticsearch_client.use_aws_instance_metadata:
         # Use the metadata service to get proper temporary access keys for signing requests
-        provider = InstanceMetadataProvider(iam_role_fetcher=InstanceMetadataFetcher(timeout=1000, num_attempts=2))
-        creds = provider.load()
-        aws_access_key_id = creds.access_key
-        aws_secret_access_key = creds.secret_key
+        provider = boto3.Session()
+        credentials = provider.get_credentials()
+        aws_access_key_id = credentials.access_key
+        aws_secret_access_key = credentials.secret_key
     else:
         aws_access_key_id = graph.config.elasticsearch_client.aws_access_key_id
         aws_secret_access_key = graph.config.elasticsearch_client.aws_secret_access_key
 
-    awsauth = AWS4Auth(aws_access_key_id, aws_secret_access_key, aws_region, 'es')
+    awsauth = AWS4Auth(
+        aws_access_key_id,
+        aws_secret_access_key,
+        aws_region,
+        'es',
+        session_token=credentials.token,
+    )
 
     return dict(
         hosts=[{'host': graph.config.elasticsearch_client.host, 'port': 443}],
