@@ -16,6 +16,7 @@ setup(
     zip_safe=False,
     keywords="microcosm",
     install_requires=[
+        "boto3>=1.3.1",
         "botocore>=1.4.23",
         "elasticsearch>=2.0.0",
         "microcosm>=0.9.0",
