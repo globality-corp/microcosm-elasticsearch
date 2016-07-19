@@ -3,6 +3,8 @@ Factory that configures Elasticsearch client.
 
 """
 from os import environ
+from collections import namedtuple
+from functools import partial
 
 import boto3
 from elasticsearch import Elasticsearch, RequestsHttpConnection
@@ -10,6 +12,20 @@ from microcosm.api import defaults
 from requests_aws4auth import AWS4Auth
 
 from microcosm_elasticsearch.serialization import JSONSerializerPython2
+
+
+AwsCredentials = namedtuple(
+    "AwsCredentials",
+    [
+        "access_id",
+        "secret_key",
+        "region",
+        "service",
+        "session_token",
+        "session_token_expiration",
+        "next_keys",
+    ],
+)
 
 
 @defaults(
@@ -43,6 +59,22 @@ def configure_elasticsearch_client(graph):
     return Elasticsearch(**kwargs)
 
 
+def _next_aws_credentials(graph):
+    # Use the metadata service to get proper temporary access keys for signing requests
+    provider = boto3.Session()
+    boto_creds = provider.get_credentials()
+
+    return AwsCredentials(
+        access_id=boto_creds.access_key,
+        secret_key=boto_creds.secret_key,
+        region=graph.config.elasticsearch_client.aws_region,
+        service="es",
+        session_token=boto_creds.token,
+        session_token_expiration=boto_creds._expiry_time,
+        next_keys=partial(_next_aws_credentials, graph),
+    )
+
+
 def _configure_aws4auth(graph):
     """
     Configure requests-aws4auth to sign requests when using AWS hosted Elasticsearch.
@@ -52,13 +84,14 @@ def _configure_aws4auth(graph):
     """
     aws_region = graph.config.elasticsearch_client.aws_region
     if graph.config.elasticsearch_client.use_aws_instance_metadata:
-        # Use the metadata service to get proper temporary access keys for signing requests
-        provider = boto3.Session()
-        credentials = provider.get_credentials()
-        aws_access_key_id = credentials.access_key
+        credentials = _next_aws_credentials(graph)
+
+        aws_access_key_id = credentials.access_id
         aws_secret_access_key = credentials.secret_key
         awsauth_kwargs = dict(
-            session_token=credentials.token,
+            session_token=credentials.session_token,
+            session_token_expiration=credentials.session_token_expiration,
+            next_keys=credentials.next_keys,
         )
     else:
         aws_access_key_id = graph.config.elasticsearch_client.aws_access_key_id
