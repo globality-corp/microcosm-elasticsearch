@@ -3,11 +3,11 @@ Factory that configures Elasticsearch client.
 
 """
 from os import environ
+from collections import namedtuple
+from functools import partial
 
 import boto3
-from collections import namedtuple
 from elasticsearch import Elasticsearch, RequestsHttpConnection
-from functools import partial
 from microcosm.api import defaults
 from requests_aws4auth import AWS4Auth
 
