@@ -21,7 +21,7 @@ setup(
         "elasticsearch>=2.0.0",
         "microcosm>=0.9.0",
         "requests[security]>=2.9.1",
-        "requests-aws4auth-redux>=0.20",
+        "requests-aws4auth-redux>=0.30",
     ],
     setup_requires=[
         "nose>=1.3.6",
