@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "microcosm-elasticsearch"
-version = "0.6.0"
+version = "0.7.0"
 
 setup(
     name=project,
@@ -21,7 +21,7 @@ setup(
         "elasticsearch>=2.0.0",
         "microcosm>=0.9.0",
         "requests[security]>=2.9.1",
-        "requests-aws4auth-redux>=0.30",
+        "requests-aws4auth-redux>=0.40",
     ],
     setup_requires=[
         "nose>=1.3.6",
