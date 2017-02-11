@@ -60,7 +60,7 @@ def _next_aws_credentials(graph):
     )
 
 
-def _configure_aws4auth(graph):
+def _configure_aws4auth(graph, host=None):
     """
     Configure requests-aws4auth to sign requests when using AWS hosted Elasticsearch.
 
@@ -92,7 +92,7 @@ def _configure_aws4auth(graph):
     )
 
     return dict(
-        hosts=[{'host': graph.config.elasticsearch_client.host, 'port': 443}],
+        hosts=[{'host': host or graph.config.elasticsearch_client.host, 'port': 443}],
         connection_class=RequestsHttpConnection,
         http_auth=awsauth,
         use_ssl=True,
