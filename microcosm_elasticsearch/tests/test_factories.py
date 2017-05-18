@@ -25,10 +25,10 @@ def test_configure_elasticsearch_client_with_aws4auth():
     def loader(metadata):
         return dict(
             elasticsearch_client=dict(
-                aws_access_key_id='aws-access-key-id',
-                aws_secret_access_key='aws-secret-access-key',
-                aws_region='aws-region-1',
-                use_aws4auth=True,
+                aws_access_key_id="aws-access-key-id",
+                aws_secret_access_key="aws-secret-access-key",
+                aws_region="aws-region-1",
+                use_aws4auth="True",
             )
         )
 
@@ -45,7 +45,7 @@ def test_configure_elasticsearch_client_with_python_2_serializer_works():
     def loader(metadata):
         return dict(
             elasticsearch_client=dict(
-                use_python2_serializer=True,
+                use_python2_serializer="True",
             )
         )
 
