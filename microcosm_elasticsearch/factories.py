@@ -2,10 +2,11 @@
 Factory that configures Elasticsearch client.
 
 """
-from os import environ
+from distutils.util import strtobool
 from functools import partial
+from os import environ
 
-import boto3
+from boto3 import Session
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from microcosm.api import defaults
 from requests_aws4auth import AWS4Auth
@@ -17,10 +18,12 @@ from microcosm_elasticsearch.serialization import JSONSerializerPython2
     aws_access_key_id=environ.get('AWS_ACCESS_KEY_ID'),
     aws_region=environ.get('AWS_REGION'),
     aws_secret_access_key=environ.get('AWS_SECRET_ACCESS_KEY'),
-    host='localhost:9200',
-    use_aws4auth=False,
-    use_aws_instance_metadata=False,
-    use_python2_serializer=True,
+    host="localhost",
+    username=None,
+    password=None,
+    use_aws4auth="false",
+    use_aws_instance_metadata="false",
+    use_python2_serializer="true",
 )
 def configure_elasticsearch_client(graph):
     """
@@ -29,14 +32,21 @@ def configure_elasticsearch_client(graph):
     :returns: an Elasticsearch client instance of the configured name
 
     """
-    if graph.config.elasticsearch_client.use_aws4auth:
+    if strtobool(graph.config.elasticsearch_client.use_aws4auth):
         kwargs = _configure_aws4auth(graph)
     else:
         kwargs = dict(
-            hosts=[graph.config.elasticsearch_client.host]
+            hosts=[
+                graph.config.elasticsearch_client.host,
+            ],
         )
+        if graph.config.elasticsearch_client.username and graph.config.elasticsearch_client.password:
+            kwargs["http_auth"] = (
+                graph.config.elasticsearch_client.username,
+                graph.config.elasticsearch_client.password,
+            )
 
-    if graph.config.elasticsearch_client.use_python2_serializer:
+    if strtobool(graph.config.elasticsearch_client.use_python2_serializer):
         kwargs.update(dict(
             serializer=JSONSerializerPython2(),
         ))
@@ -46,7 +56,7 @@ def configure_elasticsearch_client(graph):
 
 def _next_aws_credentials(graph):
     # Use the metadata service to get proper temporary access keys for signing requests
-    provider = boto3.Session()
+    provider = Session()
     boto_creds = provider.get_credentials()
 
     return dict(
@@ -68,7 +78,7 @@ def _configure_aws4auth(graph, host=None):
 
     """
     aws_region = graph.config.elasticsearch_client.aws_region
-    if graph.config.elasticsearch_client.use_aws_instance_metadata:
+    if strtobool(graph.config.elasticsearch_client.use_aws_instance_metadata):
         credentials = _next_aws_credentials(graph)
 
         aws_access_key_id = credentials.get("access_id")
