@@ -32,7 +32,7 @@ database:
 
 test:
   override:
-     - tox
+    - tox
     # stop test ES database
     - docker-compose stop
 
