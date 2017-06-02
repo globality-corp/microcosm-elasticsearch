@@ -1,22 +1,41 @@
 # CircleCI Configuration file
 
 machine:
+  pre:
+    # install a reasonable version of Docker
+    - sudo curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
   python:
       version: 2.7.11
+  services:
+    - docker
+
 
 general:
   artifacts:
      - "dist"
      - "cover"
 
+
 dependencies:
   override:
     - pip install tox tox-pyenv
     - pyenv local 2.7.11 3.5.1  # Should correspond to pre-installed Python versions on CircleCI
 
+
+database:
+  pre:
+    - docker pull docker.elastic.co/elasticsearch/elasticsearch:5.4.0
+  override:
+    # start ES test database
+    - docker run --rm --name elasticsearch -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -p 9200:9200 -e bootstrap.memory_lock=true -e cluster.name=docker -e http.host=0.0.0.0 -e transport.host=127.0.0.1 docker.elastic.co/elasticsearch/elasticsearch:5.4.0:
+        background: true
+
 test:
   override:
-     - tox
+    - tox
+    # stop test ES database
+    - docker stop elasticsearch
+
 
 deployment:
   pypi:

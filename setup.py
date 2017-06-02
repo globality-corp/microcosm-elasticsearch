@@ -16,11 +16,12 @@ setup(
     zip_safe=False,
     keywords="microcosm",
     install_requires=[
-        "boto3>=1.3.1",
-        "botocore>=1.4.23",
-        "elasticsearch>=2.0.0",
-        "microcosm>=0.17.0",
-        "requests[security]>=2.9.1",
+        "boto3>=1.4.4",
+        "botocore>=1.5.59",
+        "elasticsearch>=5.4.0",
+        "elasticsearch-dsl==5.3.0",
+        "microcosm>=1.2.0",
+        "requests[security]>=2.17.3",
         "requests-aws4auth-redux>=0.40",
     ],
     setup_requires=[
@@ -34,8 +35,8 @@ setup(
         ],
     },
     tests_require=[
-        "coverage>=3.7.1",
-        "mock>=1.0.1",
-        "PyHamcrest>=1.8.5",
+        "coverage>=4.4.1",
+        "mock>=2.0.0",
+        "PyHamcrest>=1.9.0",
     ],
 )
