@@ -27,15 +27,14 @@ database:
     - docker pull docker.elastic.co/elasticsearch/elasticsearch:5.4.0
   override:
     # start ES test database
-    - docker-compose up:
+    - docker run --rm --name elasticsearch -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -p 9200:9200 -e bootstrap.memory_lock=true -e cluster.name=docker -e http.host=0.0.0.0 -e transport.host=127.0.0.1 docker.elastic.co/elasticsearch/elasticsearch:5.4.0:
         background: true
 
 test:
   override:
-    - docker-compose ps
     - tox
     # stop test ES database
-    - docker-compose stop
+    - docker stop elasticsearch
 
 
 deployment:
