@@ -214,7 +214,10 @@ class Store(object):
         :param limit: pagination limit, if any
 
         """
-        if offset is not None and limit is not None:
-            query = query.extra(from_=offset, size=limit)
+        if offset is not None:
+            query = query.extra(from_=offset)
+
+        if limit is not None:
+            query = query.extra(size=limit)
 
         return query
