@@ -109,6 +109,7 @@ class Store(object):
         )
         return new_instance
 
+    @translate_elasticsearch_errors
     def replace(self, identifier, new_instance):
         """
         Create or update an entity.
@@ -169,6 +170,7 @@ class Store(object):
         )
         return result["count"]
 
+    @translate_elasticsearch_errors
     def search(self, **kwargs):
         """
         Return the list of models matching some criterion.
