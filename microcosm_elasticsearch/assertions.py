@@ -10,7 +10,11 @@ from time import sleep
 from hamcrest import assert_that, calling, raises
 
 
-def assert_that_eventually(func, matches, tries=3, sleep_seconds=0.1):
+DEFAULT_TRIES = 5
+DEFAULT_SLEEP_SECONDS = 0.1
+
+
+def assert_that_eventually(func, matches, tries=DEFAULT_TRIES, sleep_seconds=DEFAULT_SLEEP_SECONDS):
     last_error = None
     for _ in range(3):
         try:
@@ -23,7 +27,7 @@ def assert_that_eventually(func, matches, tries=3, sleep_seconds=0.1):
         raise last_error
 
 
-def assert_that_not_eventually(func, matches, tries=3, sleep_seconds=0.1):
+def assert_that_not_eventually(func, matches, tries=DEFAULT_TRIES, sleep_seconds=DEFAULT_SLEEP_SECONDS):
     assert_that(
         calling(assert_that_eventually).with_args(func, matches, tries, sleep_seconds),
         raises(AssertionError),
