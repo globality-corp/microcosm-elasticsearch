@@ -14,6 +14,8 @@ from hamcrest import (
     raises,
 )
 from microcosm.api import create_object_graph
+from nose.plugins.attrib import attr
+
 
 from microcosm_elasticsearch.assertions import assert_that_eventually, assert_that_not_eventually
 from microcosm_elasticsearch.errors import (
@@ -65,6 +67,7 @@ class TestStore(object):
             raises(ElasticsearchConflictError),
         )
 
+    @attr("slow")
     def test_count(self):
         self.store.create(self.kevin)
         self.store.create(self.steph)
@@ -87,6 +90,7 @@ class TestStore(object):
             raises(ElasticsearchNotFoundError),
         )
 
+    @attr("slow")
     def test_search(self):
         self.store.create(self.kevin)
         assert_that_eventually(
@@ -100,6 +104,7 @@ class TestStore(object):
             ),
         )
 
+    @attr("slow")
     def test_search_order_reverse_chronological(self):
         self.store.create(self.kevin)
         self.store.create(self.steph)
@@ -111,6 +116,7 @@ class TestStore(object):
             ),
         )
 
+    @attr("slow")
     def test_search_paging(self):
         self.store.create(self.kevin)
         self.store.create(self.steph)
@@ -127,6 +133,7 @@ class TestStore(object):
             ),
         )
 
+    @attr("slow")
     def test_search_filter(self):
         self.store.create(self.kevin)
         assert_that_eventually(
@@ -140,6 +147,7 @@ class TestStore(object):
             ),
         )
 
+    @attr("slow")
     def test_search_filter_out(self):
         self.store.create(self.kevin)
         assert_that_not_eventually(

@@ -10,7 +10,7 @@ from time import sleep
 from hamcrest import assert_that, calling, raises
 
 
-DEFAULT_TRIES = 5
+DEFAULT_TRIES = 3
 DEFAULT_SLEEP_SECONDS = 0.1
 
 
