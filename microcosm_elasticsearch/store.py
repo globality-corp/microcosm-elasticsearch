@@ -35,6 +35,10 @@ class Store(object):
         # NB: do NOT provide a model backref here because "smart" shortcuts on the
         # model will conflict with existing methods on the DocType base class
 
+    @property
+    def model_class(self):
+        return self.doc_type
+
     def new_object_id(self):
         """
         Injectable id generation to facilitate mocking.
