@@ -5,14 +5,13 @@ Test fixtures.
 from elasticsearch_dsl import Q, Text
 from microcosm.api import binding
 
-from microcosm_elasticsearch.indexing import make_index
 from microcosm_elasticsearch.models import Model
 from microcosm_elasticsearch.store import Store
 
 
 @binding("example_index")
 def create_example_index(graph):
-    return make_index(graph)
+    return graph.elasticsearch_index_registry.register(version="v1")
 
 
 class Person(Model):

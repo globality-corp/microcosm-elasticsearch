@@ -31,7 +31,8 @@ setup(
     ],
     entry_points={
         "microcosm.factories": [
-            "elasticsearch_client = microcosm_elasticsearch.factories:configure_elasticsearch_client"
+            "elasticsearch_client = microcosm_elasticsearch.factories:configure_elasticsearch_client",
+            "elasticsearch_index_registry = microcosm_elasticsearch.registry:IndexRegistry",
         ],
     },
     tests_require=[

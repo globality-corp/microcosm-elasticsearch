@@ -22,7 +22,6 @@ from microcosm_elasticsearch.errors import (
     ElasticsearchConflictError,
     ElasticsearchNotFoundError,
 )
-from microcosm_elasticsearch.indexing import createall
 from microcosm_elasticsearch.tests.fixtures import Person
 
 
@@ -31,7 +30,7 @@ class TestStore(object):
     def setup(self):
         self.graph = create_object_graph("example", testing=True)
         self.store = self.graph.person_store
-        createall(self.graph.example_index, force=True)
+        self.graph.elasticsearch_index_registry.createall(force=True)
 
         self.kevin = Person(
             first="Kevin",

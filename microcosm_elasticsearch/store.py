@@ -18,26 +18,30 @@ class Store(object):
     Elasticsearch persistence interface.
 
     """
-    def __init__(self, graph, index, doc_type):
+    def __init__(self, graph, index, model_class):
         """
         :param graph: the object graph
         :param index: the name of an index to use
-        :param doc_type: a `elasticsearch_dsl.DocType` subclass to persist.
+        :param model_class: a `elasticsearch_dsl.DocType` subclass to persist.
 
         """
         self.elasticsearch_client = graph.elasticsearch_client
         self.index = index
-        self.doc_type = doc_type
+        self.model_class = model_class
 
         # register the model with the index
-        self.index.doc_type(self.doc_type)
+        self.index.doc_type(self.model_class)
 
         # NB: do NOT provide a model backref here because "smart" shortcuts on the
         # model will conflict with existing methods on the DocType base class
 
     @property
-    def model_class(self):
-        return self.doc_type
+    def doc_type(self):
+        return self.model_class._doc_type.name
+
+    @property
+    def index_name(self):
+        return self.index._name
 
     def new_object_id(self):
         """
@@ -74,8 +78,8 @@ class Store(object):
         # NB: the DSL save function will overwrite existing records; use the raw client
         self.elasticsearch_client.create(
             id=instance.id,
-            index=self.index._name,
-            doc_type=self.doc_type._doc_type.name,
+            index=self.index_name,
+            doc_type=self.doc_type,
             body=instance.to_dict(),
         )
         return instance
@@ -88,9 +92,9 @@ class Store(object):
         :raises `ElasticsearchNotFoundError` if there is no existing model
 
         """
-        return self.doc_type.get(
+        return self.model_class.get(
             id=identifier,
-            index=self.index._name,
+            index=self.index_name,
             using=self.elasticsearch_client,
         )
 
@@ -108,7 +112,7 @@ class Store(object):
 
         new_instance.update(
             using=self.elasticsearch_client,
-            index=self.index._name,
+            index=self.index_name,
             **new_instance.to_dict()
         )
         return new_instance
@@ -135,7 +139,7 @@ class Store(object):
         new_instance.save(
             id=new_instance.id,
             using=self.elasticsearch_client,
-            index=self.index._name,
+            index=self.index_name,
             validate=True,
         )
         return new_instance
@@ -148,11 +152,11 @@ class Store(object):
         :raises `ElasticsearchNotFoundError` if there is no existing model
 
         """
-        instance = self.doc_type(
+        instance = self.model_class(
             _id=identifier,
         )
         instance.delete(
-            index=self.index._name,
+            index=self.index_name,
             using=self.elasticsearch_client,
         )
         return True
@@ -168,8 +172,8 @@ class Store(object):
 
         # NB: DSL does not have obvious count support; use the raw client
         result = self.elasticsearch_client.count(
-            index=self.index._name,
-            doc_type=self.doc_type._doc_type.name,
+            index=self.index_name,
+            doc_type=self.doc_type,
             body=query.to_dict(),
         )
         return result["count"]
@@ -187,7 +191,7 @@ class Store(object):
         query = self._order_by(query, **kwargs)
         query = self._filter(query, **kwargs)
         return [
-            self.doc_type(**hit.to_dict())
+            self.model_class(**hit.to_dict())
             for hit in query.execute().hits
         ]
 
@@ -196,8 +200,8 @@ class Store(object):
         Create a search query.
 
         """
-        return self.doc_type.search(
-            index=self.index._name,
+        return self.model_class.search(
+            index=self.index_name,
             using=self.elasticsearch_client,
         )
 
