@@ -19,8 +19,10 @@ from microcosm_elasticsearch.serialization import JSONSerializerPython2
     aws_region=environ.get('AWS_REGION'),
     aws_secret_access_key=environ.get('AWS_SECRET_ACCESS_KEY'),
     host="localhost",
-    username=None,
-    password=None,
+    # NB: these are the defaults shipped with the ES docker distribution.
+    # We want testing to "just work"; no sane production application should use these.
+    username="elastic",
+    password="changeme",
     use_aws4auth="false",
     use_aws_instance_metadata="false",
     use_python2_serializer="false",
@@ -64,11 +66,6 @@ def configure_elasticsearch(config, graph):
                 graph.config.elasticsearch_client.username,
                 graph.config.elasticsearch_client.password,
             ),
-        )
-    elif graph.metadata.testing:
-        # NB: These are the defaults used by the ES docker image
-        config.update(
-            http_auth=("elastic", "changeme"),
         )
 
 
