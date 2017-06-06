@@ -23,7 +23,7 @@ from microcosm_elasticsearch.serialization import JSONSerializerPython2
     password=None,
     use_aws4auth="false",
     use_aws_instance_metadata="false",
-    use_python2_serializer="true",
+    use_python2_serializer="false",
 )
 def configure_elasticsearch_client(graph):
     """
@@ -32,26 +32,44 @@ def configure_elasticsearch_client(graph):
     :returns: an Elasticsearch client instance of the configured name
 
     """
+    config = dict()
+
     if strtobool(graph.config.elasticsearch_client.use_aws4auth):
-        kwargs = _configure_aws4auth(graph)
+        configure_elasticsearch_aws(config, graph)
     else:
-        kwargs = dict(
-            hosts=[
-                graph.config.elasticsearch_client.host,
-            ],
-        )
-        if graph.config.elasticsearch_client.username and graph.config.elasticsearch_client.password:
-            kwargs["http_auth"] = (
-                graph.config.elasticsearch_client.username,
-                graph.config.elasticsearch_client.password,
-            )
+        configure_elasticsearch(config, graph)
 
     if strtobool(graph.config.elasticsearch_client.use_python2_serializer):
-        kwargs.update(dict(
+        config.update(
             serializer=JSONSerializerPython2(),
-        ))
+        )
 
-    return Elasticsearch(**kwargs)
+    return Elasticsearch(**config)
+
+
+def configure_elasticsearch(config, graph):
+    """
+    Configure non-AWS elasticsearch
+
+    """
+    config.update(
+        hosts=[
+            graph.config.elasticsearch_client.host,
+        ],
+    )
+
+    if graph.config.elasticsearch_client.username and graph.config.elasticsearch_client.password:
+        config.update(
+            http_auth=(
+                graph.config.elasticsearch_client.username,
+                graph.config.elasticsearch_client.password,
+            ),
+        )
+    elif graph.metadata.testing:
+        # NB: These are the defaults used by the ES docker image
+        config.update(
+            http_auth=("elastic", "changeme"),
+        )
 
 
 def _next_aws_credentials(graph):
@@ -70,7 +88,7 @@ def _next_aws_credentials(graph):
     )
 
 
-def _configure_aws4auth(graph, host=None):
+def configure_elasticsearch_aws(config, graph, host=None):
     """
     Configure requests-aws4auth to sign requests when using AWS hosted Elasticsearch.
 
@@ -78,6 +96,7 @@ def _configure_aws4auth(graph, host=None):
 
     """
     aws_region = graph.config.elasticsearch_client.aws_region
+
     if strtobool(graph.config.elasticsearch_client.use_aws_instance_metadata):
         credentials = _next_aws_credentials(graph)
 
@@ -101,7 +120,7 @@ def _configure_aws4auth(graph, host=None):
         **awsauth_kwargs
     )
 
-    return dict(
+    config.update(
         hosts=[{'host': host or graph.config.elasticsearch_client.host, 'port': 443}],
         connection_class=RequestsHttpConnection,
         http_auth=awsauth,
