@@ -1,8 +1,12 @@
 """
 Assertion support.
 
-Elasticsearch inserts are not immediately indexed for search and count queries. For simpler
-test code, we use assertions that eventually resolve, after some number of retries.
+Elasticsearch inserts are not immediately indexed for search and count queries.
+
+While it's possible to explicitly flush an index, the Elasticsearch persistence
+model typically assumes that inserts are *not* indexed synchronously. For simpler
+test code in these cases, it's helpful to have assertions that *eventually* resolve,
+after some number of retries.
 
 """
 from time import sleep

@@ -66,8 +66,14 @@ class TestStore(object):
             raises(ElasticsearchConflictError),
         )
 
-    @attr("slow")
     def test_count(self):
+        with self.store.flushing():
+            self.store.create(self.kevin)
+            self.store.create(self.steph)
+        assert_that(self.store.count(), is_(equal_to(2)))
+
+    @attr("slow")
+    def test_count_slow(self):
         self.store.create(self.kevin)
         self.store.create(self.steph)
         assert_that_eventually(
@@ -89,8 +95,23 @@ class TestStore(object):
             raises(ElasticsearchNotFoundError),
         )
 
-    @attr("slow")
     def test_search(self):
+        with self.store.flushing():
+            self.store.create(self.kevin)
+
+        assert_that(
+            self.store.search(),
+            contains(
+                all_of(
+                    has_property("id", self.kevin.id),
+                    has_property("first", "Kevin"),
+                    has_property("last", "Durant"),
+                ),
+            ),
+        )
+
+    @attr("slow")
+    def test_search_slow(self):
         self.store.create(self.kevin)
         assert_that_eventually(
             calling(self.store.search),
@@ -103,40 +124,43 @@ class TestStore(object):
             ),
         )
 
-    @attr("slow")
     def test_search_order_reverse_chronological(self):
-        self.store.create(self.kevin)
-        self.store.create(self.steph)
-        assert_that_eventually(
-            calling(self.store.search),
+        with self.store.flushing():
+            self.store.create(self.kevin)
+            self.store.create(self.steph)
+
+        assert_that(
+            self.store.search(),
             contains(
                 has_property("id", self.steph.id),
                 has_property("id", self.kevin.id),
             ),
         )
 
-    @attr("slow")
     def test_search_paging(self):
-        self.store.create(self.kevin)
-        self.store.create(self.steph)
-        assert_that_eventually(
-            calling(self.store.search).with_args(offset=1, limit=1),
+        with self.store.flushing():
+            self.store.create(self.kevin)
+            self.store.create(self.steph)
+
+        assert_that(
+            self.store.search(offset=1, limit=1),
             contains(
                 has_property("id", self.kevin.id),
             ),
         )
-        assert_that_eventually(
-            calling(self.store.search).with_args(offset=0, limit=1),
+        assert_that(
+            self.store.search(offset=0, limit=1),
             contains(
                 has_property("id", self.steph.id),
             ),
         )
 
-    @attr("slow")
     def test_search_filter(self):
-        self.store.create(self.kevin)
-        assert_that_eventually(
-            calling(self.store.search).with_args(q=self.kevin.first),
+        with self.store.flushing():
+            self.store.create(self.kevin)
+
+        assert_that(
+            self.store.search(q=self.kevin.first),
             contains(
                 all_of(
                     has_property("id", self.kevin.id),
@@ -146,8 +170,17 @@ class TestStore(object):
             ),
         )
 
-    @attr("slow")
     def test_search_filter_out(self):
+        with self.store.flushing():
+            self.store.create(self.kevin)
+
+        assert_that(
+            self.store.search(q=self.steph.first),
+            contains(),
+        )
+
+    @attr("slow")
+    def test_search_filter_out_slow(self):
         self.store.create(self.kevin)
         assert_that_not_eventually(
             calling(self.store.search).with_args(q=self.steph.first),

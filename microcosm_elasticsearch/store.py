@@ -7,6 +7,7 @@ and avoids leaking persistence abstractions throughout a code base.
 Intended to be duck-type compatible with `microcosm_postgres.store.Store`.
 
 """
+from contextlib import contextmanager
 from time import time
 from uuid import uuid4
 
@@ -42,6 +43,18 @@ class Store(object):
     @property
     def index_name(self):
         return self.index._name
+
+    @contextmanager
+    def flushing(self):
+        """
+        Flush the current session if there's no error.
+
+        Flushing an index is not an expected behavior for Elasticsearch writes, but
+        can be very useful for test cases.
+
+        """
+        yield
+        self.index.flush()
 
     def new_object_id(self):
         """
