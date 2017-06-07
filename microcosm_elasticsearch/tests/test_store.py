@@ -2,6 +2,7 @@
 Test Elasticsearch persistence.
 
 """
+from datetime import timedelta
 from hamcrest import (
     all_of,
     assert_that,
@@ -14,6 +15,7 @@ from hamcrest import (
     raises,
 )
 from microcosm.api import create_object_graph
+from mock import patch
 from nose.plugins.attrib import attr
 
 
@@ -127,8 +129,10 @@ class TestStore(object):
     def test_search_order_reverse_chronological(self):
         with self.store.flushing():
             self.store.create(self.kevin)
-        with self.store.flushing():
-            self.store.create(self.steph)
+            with patch.object(self.store, "new_timestamp") as mocked:
+                # ensure we have >= 1s created at delta
+                mocked.return_value = self.kevin.created_at + timedelta(seconds=1)
+                self.store.create(self.steph)
 
         assert_that(
             self.store.search(),
@@ -141,7 +145,10 @@ class TestStore(object):
     def test_search_paging(self):
         with self.store.flushing():
             self.store.create(self.kevin)
-            self.store.create(self.steph)
+            with patch.object(self.store, "new_timestamp") as mocked:
+                # ensure we have >= 1s created at delta
+                mocked.return_value = self.kevin.created_at + timedelta(seconds=1)
+                self.store.create(self.steph)
 
         assert_that(
             self.store.search(offset=1, limit=1),
