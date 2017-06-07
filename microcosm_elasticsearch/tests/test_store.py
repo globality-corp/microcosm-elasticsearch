@@ -127,6 +127,7 @@ class TestStore(object):
     def test_search_order_reverse_chronological(self):
         with self.store.flushing():
             self.store.create(self.kevin)
+        with self.store.flushing():
             self.store.create(self.steph)
 
         assert_that(
