@@ -49,12 +49,16 @@ class IndexRegistry(object):
         self.indexes[index_name] = index
         return index
 
-    def createall(self, force=False):
+    def createall(self, force=False, only=(), skip=()):
         """
         Create all indexes in Elasticsearch.
 
         """
         for index in self.indexes.values():
+            if only and index._name not in only:
+                continue
+            if skip and index._name in skip:
+                continue
             if force and index.exists():
                 index.delete()
             index.create()
