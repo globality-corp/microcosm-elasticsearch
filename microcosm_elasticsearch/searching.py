@@ -7,13 +7,14 @@ from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 
 class SearchIndex(object):
     """
-    Elasticsearch search interface.
+    Encapsulates search against an index.
 
     """
     def __init__(self, graph, index, model_class):
         """
         :param graph: the object graph
         :param index: the name of an index to use
+        :param model_class: the model to search
 
         """
         self.elasticsearch_client = graph.elasticsearch_client
