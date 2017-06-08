@@ -12,9 +12,10 @@ from time import time
 from uuid import uuid4
 
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
+from microcosm_elasticsearch.searching import SearchIndex
 
 
-class Store(object):
+class Store(SearchIndex):
     """
     Elasticsearch persistence interface.
 
@@ -26,9 +27,7 @@ class Store(object):
         :param model_class: a `elasticsearch_dsl.DocType` subclass to persist.
 
         """
-        self.elasticsearch_client = graph.elasticsearch_client
-        self.index = index
-        self.model_class = model_class
+        super(Store, self).__init__(graph, index, model_class)
 
         # register the model with the index
         self.index.doc_type(self.model_class)
@@ -39,10 +38,6 @@ class Store(object):
     @property
     def doc_type(self):
         return self.model_class._doc_type.name
-
-    @property
-    def index_name(self):
-        return self.index._name
 
     @contextmanager
     def flushing(self):
@@ -174,71 +169,14 @@ class Store(object):
         )
         return True
 
-    @translate_elasticsearch_errors
-    def count(self, *criterion, **kwargs):
-        """
-        Count the number of models matching some criterion.
-
-        """
-        query = self._query()
-        query = self._filter(query, **kwargs)
-
-        # NB: DSL does not have obvious count support; use the raw client
-        result = self.elasticsearch_client.count(
-            index=self.index_name,
-            doc_type=self.doc_type,
-            body=query.to_dict(),
-        )
-        return result["count"]
-
-    @translate_elasticsearch_errors
-    def search(self, **kwargs):
-        """
-        Return the list of models matching some criterion.
-
-        :param offset: pagination offset, if any
-        :param limit: pagination limit, if any
-
-        """
-        query = self._query()
-        query = self._order_by(query, **kwargs)
-        query = self._filter(query, **kwargs)
-        return [
-            self.model_class(**hit.to_dict())
-            for hit in query.execute().hits
-        ]
-
     def _query(self):
         """
         Create a search query.
+
+        Restricts the search to only this model class.
 
         """
         return self.model_class.search(
             index=self.index_name,
             using=self.elasticsearch_client,
         )
-
-    def _order_by(self, query, **kwargs):
-        """
-        Add an order by clause to a (search) query.
-
-        By default, uses reverse chronogical creation order.
-
-        """
-        return query.sort("-created_at")
-
-    def _filter(self, query, offset=None, limit=None, **kwargs):
-        """
-        Filter a query with user-supplied arguments.
-
-        :param offset: pagination offset, if any
-        :param limit: pagination limit, if any
-
-        """
-        if offset is not None:
-            query = query.extra(from_=offset)
-
-        if limit is not None:
-            query = query.extra(size=limit)
-
-        return query
