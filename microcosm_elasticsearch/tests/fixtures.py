@@ -2,7 +2,7 @@
 Test fixtures.
 
 """
-from elasticsearch_dsl import Q, Text
+from elasticsearch_dsl import Keyword, Q, Text
 from microcosm.api import binding
 
 from microcosm_elasticsearch.models import Model
@@ -21,20 +21,11 @@ class Person(Model):
     last = Text(required=True)
 
 
-@binding("example_search_index")
-def create_example_search_index(graph):
-    return SearchIndex(
-        graph=graph,
-        index=graph.example_index,
-        model_class=Person,
-    )
+class Employee(Person):
+    employee_id = Keyword(required=False)
 
 
-@binding("person_store")
-class PersonStore(Store):
-    def __init__(self, graph):
-        super(PersonStore, self).__init__(graph, graph.example_index, Person)
-
+class PersonSearchIndex(SearchIndex):
     def _filter(self, query, q=None, **kwargs):
         if q is not None:
             query = query.query(
@@ -47,4 +38,25 @@ class PersonStore(Store):
                     ],
                 )
             )
-        return super(PersonStore, self)._filter(query, **kwargs)
+        return super(PersonSearchIndex, self)._filter(query, **kwargs)
+
+
+@binding("example_search_index")
+def create_example_search_index(graph):
+    return PersonSearchIndex(
+        graph=graph,
+        index=graph.example_index,
+        model_class=Person,
+    )
+
+
+@binding("person_store")
+class PersonStore(Store):
+    def __init__(self, graph):
+        super(PersonStore, self).__init__(graph, graph.example_index, Person, PersonSearchIndex)
+
+
+@binding("employee_store")
+class EmployeeStore(Store):
+    def __init__(self, graph):
+        super(EmployeeStore, self).__init__(graph, graph.example_index, Employee, PersonSearchIndex)

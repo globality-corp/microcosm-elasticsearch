@@ -8,6 +8,7 @@ Intended to be duck-type compatible with `microcosm_postgres.store.Store`.
 
 """
 from contextlib import contextmanager
+from inspect import isclass
 from time import time
 from uuid import uuid4
 
@@ -15,19 +16,26 @@ from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 from microcosm_elasticsearch.searching import SearchIndex
 
 
-class Store(SearchIndex):
+class Store(object):
     """
     Elasticsearch persistence interface.
 
     """
-    def __init__(self, graph, index, model_class):
+    def __init__(self, graph, index, model_class, search_index=SearchIndex):
         """
         :param graph: the object graph
         :param index: the name of an index to use
         :param model_class: a `elasticsearch_dsl.DocType` subclass to persist.
 
         """
-        super(Store, self).__init__(graph, index, model_class)
+        self.elasticsearch_client = graph.elasticsearch_client
+        self.index = index
+        self.model_class = model_class
+
+        if isclass(search_index):
+            self.search_index = search_index(graph, index, model_class)
+        else:
+            self.search_index = search_index
 
         # register the model with the index
         self.index.doc_type(self.model_class)
@@ -38,6 +46,10 @@ class Store(SearchIndex):
     @property
     def doc_type(self):
         return self.model_class._doc_type.name
+
+    @property
+    def index_name(self):
+        return self.index._name
 
     @contextmanager
     def flushing(self):
@@ -67,6 +79,18 @@ class Store(SearchIndex):
         """
         # NB: Elasticsearch supports epoch_millis by default
         return int(time() * 1000)
+
+    def count(self, **kwargs):
+        # delegate
+        return self.search_index.count(**kwargs)
+
+    def search(self, **kwargs):
+        # delegate
+        return self.search_index.search(**kwargs)
+
+    def search_with_count(self, **kwargs):
+        # delegate
+        return self.search_index.search_with_count(**kwargs)
 
     @translate_elasticsearch_errors
     def create(self, instance):
@@ -168,15 +192,3 @@ class Store(SearchIndex):
             using=self.elasticsearch_client,
         )
         return True
-
-    def _query(self):
-        """
-        Create a search query.
-
-        Restricts the search to only this model class.
-
-        """
-        return self.model_class.search(
-            index=self.index_name,
-            using=self.elasticsearch_client,
-        )

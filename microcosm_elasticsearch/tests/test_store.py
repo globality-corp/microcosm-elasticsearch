@@ -112,6 +112,23 @@ class TestStore(object):
             ),
         )
 
+    def test_search_with_count(self):
+        with self.store.flushing():
+            self.store.create(self.kevin)
+
+        items, count = self.store.search_with_count()
+        assert_that(
+            items,
+            contains(
+                all_of(
+                    has_property("id", self.kevin.id),
+                    has_property("first", "Kevin"),
+                    has_property("last", "Durant"),
+                ),
+            ),
+        )
+        assert_that(count, is_(equal_to(1)))
+
     @attr("slow")
     def test_search_slow(self):
         self.store.create(self.kevin)
