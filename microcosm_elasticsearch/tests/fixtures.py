@@ -6,6 +6,7 @@ from elasticsearch_dsl import Q, Text
 from microcosm.api import binding
 
 from microcosm_elasticsearch.models import Model
+from microcosm_elasticsearch.searching import SearchIndex
 from microcosm_elasticsearch.store import Store
 
 
@@ -18,6 +19,15 @@ class Person(Model):
     first = Text(required=True)
     middle = Text(required=False)
     last = Text(required=True)
+
+
+@binding("example_search_index")
+def create_example_search_index(graph):
+    return SearchIndex(
+        graph=graph,
+        index=graph.example_index,
+        model_class=Person,
+    )
 
 
 @binding("person_store")

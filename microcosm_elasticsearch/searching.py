@@ -30,16 +30,9 @@ class SearchIndex(object):
         Count the number of models matching some criterion.
 
         """
-        query = self._query()
-        query = self._filter(query, **kwargs)
-
-        # NB: DSL does not have obvious count support; use the raw client
-        result = self.elasticsearch_client.count(
-            index=self.index_name,
-            doc_type=self.doc_type,
-            body=query.to_dict(),
-        )
-        return result["count"]
+        query = self._search(**kwargs)
+        query.execute()
+        return query.count()
 
     @translate_elasticsearch_errors
     def search(self, **kwargs):
@@ -61,11 +54,15 @@ class SearchIndex(object):
         :param limit: pagination limit, if any
 
         """
+        query = self._search(**kwargs)
+        results = query.execute()
+        return self._to_list(results.hits), query.count()
+
+    def _search(self, **kwargs):
         query = self._query()
         query = self._order_by(query, **kwargs)
         query = self._filter(query, **kwargs)
-        results = query.execute()
-        return self._to_list(results.hits), query.count()
+        return query
 
     def _to_list(self, hits):
         return [

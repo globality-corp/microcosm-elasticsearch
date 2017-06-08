@@ -173,6 +173,8 @@ class Store(SearchIndex):
         """
         Create a search query.
 
+        Restricts the search to only this model class.
+
         """
         return self.model_class.search(
             index=self.index_name,
