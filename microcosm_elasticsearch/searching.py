@@ -60,7 +60,7 @@ class SearchIndex(object):
         """
         query = self._search(**kwargs)
         results = query.execute()
-        return self._to_list(results.hits)
+        return self._to_list(results)
 
     def search_with_count(self, **kwargs):
         """
@@ -72,7 +72,7 @@ class SearchIndex(object):
         """
         query = self._search(**kwargs)
         results = query.execute()
-        return self._to_list(results.hits), query.count()
+        return self._to_list(results), query.count()
 
     def _search(self, **kwargs):
         query = self._query()
@@ -80,34 +80,21 @@ class SearchIndex(object):
         query = self._filter(query, **kwargs)
         return query
 
-    def _to_model_class(self, hit):
-        """
-        Resolve the model class type for this hit.
-
-        Supports polymorphic resolution.
-
-        """
-        try:
-            return self.index._doc_types(hit.doc_type)
-        except:
-            return self.model_class
-
     def _to_instance(self, hit):
         """
         Resolve this hit into a model instance.
 
         """
-        model_class = self._to_model_class(hit)
-        return model_class(**hit.to_dict())
+        return hit
 
-    def _to_list(self, hits):
+    def _to_list(self, results):
         """
         Resolve this hit into a list of instances.
 
         """
         return [
             self._to_instance(hit)
-            for hit in hits
+            for hit in results.hits
         ]
 
     def _query(self):
