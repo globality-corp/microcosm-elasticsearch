@@ -9,17 +9,32 @@ class SearchIndex(object):
     """
     Encapsulates search against an index.
 
+    An index may have many (polymorphic) document types registered with it. The search index
+    handles this complexity in two ways:
+
+     -  It creates instances of a specific model class as the results of any searches.
+
+        If searching a polymorphic index, the model class should be a compatible base class.
+
+     -  It restricts the search to specific document types.
+
+        By default, all document types registered with the index are used. To query a single
+        type in a polymorphic index, the model class and document type should be set to the
+        same type.
+
     """
-    def __init__(self, graph, index, model_class):
+    def __init__(self, graph, index, model_class, doc_type=None):
         """
         :param graph: the object graph
         :param index: the name of an index to use
-        :param model_class: the model to search
+        :param model_class: the model to return in the results list
+        :param doc_type: the doc type to search for; uses the index's doc types if omitted
 
         """
         self.elasticsearch_client = graph.elasticsearch_client
         self.index = index
         self.model_class = model_class
+        self.doc_type = doc_type
 
     @property
     def index_name(self):
@@ -32,7 +47,6 @@ class SearchIndex(object):
 
         """
         query = self._search(**kwargs)
-        query.execute()
         return query.count()
 
     @translate_elasticsearch_errors
@@ -44,8 +58,9 @@ class SearchIndex(object):
         :param limit: pagination limit, if any
 
         """
-        items, _ = self.search_with_count(**kwargs)
-        return items
+        query = self._search(**kwargs)
+        results = query.execute()
+        return self._to_list(results.hits)
 
     def search_with_count(self, **kwargs):
         """
@@ -75,8 +90,13 @@ class SearchIndex(object):
         """
         Create a search query.
 
+        Starts with the index's search function. Customizes with the provided doc type, if any.
+
         """
-        return self.index.search()
+        query = self.index.search()
+        if self.doc_type is not None:
+            query = query.doc_type().doc_type(self.doc_type)
+        return query
 
     def _order_by(self, query, **kwargs):
         """
@@ -102,3 +122,7 @@ class SearchIndex(object):
             query = query.extra(size=limit)
 
         return query
+
+    @classmethod
+    def for_only(cls, graph, index, doc_type):
+        return cls(graph, index, doc_type, doc_type)

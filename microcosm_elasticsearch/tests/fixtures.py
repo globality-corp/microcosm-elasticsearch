@@ -21,8 +21,8 @@ class Person(Model):
     last = Text(required=True)
 
 
-class Employee(Person):
-    employee_id = Keyword(required=False)
+class Player(Person):
+    jersey_number = Keyword(required=False)
 
 
 class PersonSearchIndex(SearchIndex):
@@ -56,7 +56,7 @@ class PersonStore(Store):
         super(PersonStore, self).__init__(graph, graph.example_index, Person, PersonSearchIndex)
 
 
-@binding("employee_store")
-class EmployeeStore(Store):
+@binding("player_store")
+class PlayerStore(Store):
     def __init__(self, graph):
-        super(EmployeeStore, self).__init__(graph, graph.example_index, Employee, PersonSearchIndex)
+        super(PlayerStore, self).__init__(graph, graph.example_index, Player, PersonSearchIndex)
