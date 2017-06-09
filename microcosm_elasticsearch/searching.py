@@ -80,9 +80,33 @@ class SearchIndex(object):
         query = self._filter(query, **kwargs)
         return query
 
+    def _to_model_class(self, hit):
+        """
+        Resolve the model class type for this hit.
+
+        Supports polymorphic resolution.
+
+        """
+        try:
+            return self.index._doc_types(hit.doc_type)
+        except:
+            return self.model_class
+
+    def _to_instance(self, hit):
+        """
+        Resolve this hit into a model instance.
+
+        """
+        model_class = self._to_model_class(hit)
+        return model_class(**hit.to_dict())
+
     def _to_list(self, hits):
+        """
+        Resolve this hit into a list of instances.
+
+        """
         return [
-            self.model_class(**hit.to_dict())
+            self._to_instance(hit)
             for hit in hits
         ]
 
