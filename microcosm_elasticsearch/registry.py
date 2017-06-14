@@ -54,10 +54,14 @@ class IndexRegistry(object):
         Create all indexes in Elasticsearch.
 
         """
+        only = set(only)
+        skip = set(skip)
+
         for index in self.indexes.values():
-            if only and index._name not in only:
+            aliases = set(index._aliases)
+            if only and (index._name not in only and not (aliases & only)):
                 continue
-            if skip and index._name in skip:
+            if skip and (index._name in skip or (aliases & skip)):
                 continue
             if force and index.exists():
                 index.delete()
