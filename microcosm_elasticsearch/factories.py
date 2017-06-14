@@ -19,6 +19,7 @@ from microcosm_elasticsearch.serialization import JSONSerializerPython2
     aws_access_key_id=environ.get("AWS_ACCESS_KEY_ID"),
     aws_region=environ.get("AWS_DEFAULT_REGION", environ.get("AWS_REGION", "us-east-1")),
     aws_secret_access_key=environ.get("AWS_SECRET_ACCESS_KEY"),
+    aws_session_token=environ.get("AWS_SESSION_TOKEN"),
     host="localhost",
     # NB: these are the defaults shipped with the ES docker distribution.
     # We want testing to "just work"; no sane production application should use these.
@@ -107,7 +108,9 @@ def configure_elasticsearch_aws(config, graph, host=None):
     else:
         aws_access_key_id = graph.config.elasticsearch_client.aws_access_key_id
         aws_secret_access_key = graph.config.elasticsearch_client.aws_secret_access_key
-        awsauth_kwargs = {}
+        awsauth_kwargs = dict(
+            session_token=graph.config.elasticsearch_client.aws_session_token,
+        )
 
     awsauth = AWS4Auth(
         aws_access_key_id,
