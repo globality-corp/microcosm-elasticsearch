@@ -3,8 +3,7 @@ CLI entry point hook.
 
 """
 from argparse import ArgumentParser
-from json import dump, loads
-from sys import stdout
+from json import loads
 
 
 def createall_main(graph):
@@ -26,9 +25,14 @@ def createall_main(graph):
 
 
 def query_main(graph, default_index):
+    """
+    Run a query.
+
+    """
     parser = ArgumentParser()
-    parser.add_argument("--index", default=default_index)
-    parser.add_argument("--query", default='{"match_all": {}}')
+    parser.add_argument("-i", "--index", default=default_index)
+    parser.add_argument("-q", "--query", default='{"match_all": {}}')
+    parser.add_argument("-f", "--flat", action="store_true")
     args = parser.parse_args()
 
     try:
@@ -40,4 +44,8 @@ def query_main(graph, default_index):
         index=args.index,
         body=dict(query=query),
     )
-    dump(response, stdout)
+
+    if args.flat:
+        return response["hits"]["hits"]
+    else:
+        return response
