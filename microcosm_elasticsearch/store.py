@@ -147,7 +147,7 @@ class Store(object):
             index=self.index_name,
             **new_instance.to_dict()
         )
-        return new_instance
+        return self.retrieve(identifier)
 
     @translate_elasticsearch_errors
     def replace(self, identifier, new_instance):
