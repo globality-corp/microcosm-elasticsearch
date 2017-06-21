@@ -147,6 +147,7 @@ class Store(object):
             index=self.index_name,
             **new_instance.to_dict()
         )
+
         return self.retrieve(identifier)
 
     @translate_elasticsearch_errors
