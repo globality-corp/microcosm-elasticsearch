@@ -73,7 +73,6 @@ class IndexRegistry(object):
                     continue
                 raise
 
-
     @staticmethod
     def name_for(graph, name=None, version=None):
         """
