@@ -2,6 +2,7 @@
 Manage a set of indexes and/or aliases.
 
 """
+from elasticsearch.exceptions import RequestError
 from elasticsearch_dsl import Index
 from inflection import underscore
 
@@ -65,7 +66,13 @@ class IndexRegistry(object):
                 continue
             if force and index.exists():
                 index.delete()
-            index.create()
+            try:
+                index.create()
+            except RequestError as error:
+                if "index_already_exists_exception" in str(error):
+                    continue
+                raise
+
 
     @staticmethod
     def name_for(graph, name=None, version=None):
