@@ -2,7 +2,7 @@
 Test fixtures.
 
 """
-from elasticsearch_dsl import Keyword, Q, Text
+from elasticsearch_dsl import Completion, Keyword, Q, Text
 from microcosm.api import binding
 
 from microcosm_elasticsearch.models import Model
@@ -23,6 +23,10 @@ class Person(Model):
 
 class Player(Person):
     jersey_number = Keyword(required=False)
+
+
+class AutoComplete(Model):
+    text = Completion(required=True)
 
 
 class PersonSearchIndex(SearchIndex):
