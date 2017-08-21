@@ -66,8 +66,10 @@ class IndexRegistry(object):
                 continue
             if force and index.exists():
                 index.delete()
+                index.flush(ignore_unavailable=True)
             try:
                 index.create()
+                index.refresh()
             except RequestError as error:
                 if "index_already_exists_exception" in str(error):
                     continue

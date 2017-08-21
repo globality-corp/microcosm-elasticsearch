@@ -81,6 +81,8 @@ class TestStore(object):
         assert_that_eventually(
             calling(self.store.count),
             is_(equal_to(2)),
+            tries=5,
+            sleep_seconds=0.5,
         )
 
     def test_delete_not_found(self):
@@ -141,6 +143,8 @@ class TestStore(object):
                     has_property("last", "Durant"),
                 ),
             ),
+            tries=5,
+            sleep_seconds=0.5,
         )
 
     def test_search_order_reverse_chronological(self):
