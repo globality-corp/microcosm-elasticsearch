@@ -37,7 +37,7 @@ def query_main(graph, default_index):
 
     try:
         query = loads(args.query)
-    except:
+    except Exception:
         parser.error("query must be valid json")
 
     response = graph.elasticsearch_client.search(
