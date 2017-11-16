@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "microcosm-elasticsearch"
-version = "0.19.0"
+version = "0.19.1"
 
 setup(
     name=project,
@@ -18,7 +18,7 @@ setup(
     install_requires=[
         "boto3>=1.4.4",
         "botocore>=1.5.59",
-        "elasticsearch>=5.4.0",
+        "elasticsearch<6.0.0",
         "elasticsearch-dsl==5.3.0",
         "microcosm>=1.2.0",
         "requests[security]>=2.17.3",
