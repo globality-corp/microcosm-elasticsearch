@@ -16,7 +16,7 @@ from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 from microcosm_elasticsearch.searching import SearchIndex
 
 
-class Store(object):
+class Store:
     """
     Elasticsearch persistence interface.
 
