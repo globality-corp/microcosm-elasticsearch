@@ -27,7 +27,7 @@ from microcosm_elasticsearch.errors import (
 from microcosm_elasticsearch.tests.fixtures import Person
 
 
-class TestStore(object):
+class TestStore:
 
     def setup(self):
         self.graph = create_object_graph("example", testing=True)

@@ -15,7 +15,7 @@ from microcosm.api import create_object_graph
 from microcosm_elasticsearch.tests.fixtures import Person, Player, PersonSearchIndex
 
 
-class TestIndexSearch(object):
+class TestIndexSearch:
 
     def setup(self):
         self.graph = create_object_graph("example", testing=True)

@@ -5,7 +5,7 @@ Index search.
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 
 
-class SearchIndex(object):
+class SearchIndex:
     """
     Encapsulates search against an index.
 
