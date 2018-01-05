@@ -7,7 +7,7 @@ from elasticsearch_dsl import Index
 from inflection import underscore
 
 
-class IndexRegistry(object):
+class IndexRegistry:
     """
     A registry of application indexes.
 
