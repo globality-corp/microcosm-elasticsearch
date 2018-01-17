@@ -152,7 +152,7 @@ class TestStore:
             self.store.create(self.kevin)
             with patch.object(self.store, "new_timestamp") as mocked:
                 # ensure we have >= 1s created at delta
-                mocked.return_value = self.kevin.created_at + timedelta(seconds=1)
+                mocked.return_value = self.kevin.created_at + timedelta(seconds=1).seconds * 1000
                 self.store.create(self.steph)
 
         assert_that(
@@ -168,7 +168,7 @@ class TestStore:
             self.store.create(self.kevin)
             with patch.object(self.store, "new_timestamp") as mocked:
                 # ensure we have >= 1s created at delta
-                mocked.return_value = self.kevin.created_at + timedelta(seconds=1)
+                mocked.return_value = self.kevin.created_at + timedelta(seconds=1).seconds * 1000
                 self.store.create(self.steph)
 
         assert_that(

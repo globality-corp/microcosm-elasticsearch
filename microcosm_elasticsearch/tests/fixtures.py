@@ -16,6 +16,7 @@ def create_example_index(graph):
 
 
 class Person(Model):
+    doctype = Keyword(required=True)
     first = Text(required=True)
     middle = Text(required=False)
     last = Text(required=True)
@@ -46,17 +47,16 @@ def create_example_search_index(graph):
     return PersonSearchIndex(
         graph=graph,
         index=graph.example_index,
-        model_class=Person,
     )
 
 
 @binding("person_store")
 class PersonStore(Store):
     def __init__(self, graph):
-        super(PersonStore, self).__init__(graph, graph.example_index, Person, PersonSearchIndex)
+        super(PersonStore, self).__init__(graph, graph.example_index, Person, graph.example_search_index)
 
 
 @binding("player_store")
 class PlayerStore(Store):
     def __init__(self, graph):
-        super(PlayerStore, self).__init__(graph, graph.example_index, Player, PersonSearchIndex)
+        super(PlayerStore, self).__init__(graph, graph.example_index, Player, graph.example_search_index)
