@@ -13,7 +13,6 @@ from time import time
 from uuid import uuid4
 
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
-from microcosm_elasticsearch.searching import SearchIndex
 
 
 class Store:
@@ -21,7 +20,7 @@ class Store:
     Elasticsearch persistence interface.
 
     """
-    def __init__(self, graph, index, model_class, search_index=SearchIndex):
+    def __init__(self, graph, index, model_class, search_index):
         """
         :param graph: the object graph
         :param index: the name of an index to use
@@ -32,13 +31,8 @@ class Store:
         self.index = index
         self.model_class = model_class
 
-        if isclass(search_index):
-            self.search_index = search_index(graph, index, model_class)
-        else:
-            self.search_index = search_index
-
-        # register the model with the index
-        self.index.doc_type(self.model_class)
+        search_index.register_doc_type(model_class)
+        self.search_index = search_index
 
         # NB: do NOT provide a model backref here because "smart" shortcuts on the
         # model will conflict with existing methods on the DocType base class

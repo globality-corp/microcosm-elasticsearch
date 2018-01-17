@@ -10,9 +10,21 @@ class Model(DocType):
     Every persistent entity should have a primary key id and created/updated timestamps.
 
     """
+    __doc_type_field__ = "doctype"
+    # By default the doctype will be set to the class name
+    # To change this declare:
+    # __doc_type_name__ = "<other name>"
+
+    doctype = Keyword(required=True)
+
     id = Keyword(required=True)
     created_at = Date(required=True)
     updated_at = Date(required=True)
+
+    def __init__(self, meta=None, **kwargs):
+        cls = self.__class__
+        kwargs["doctype"] = getattr(cls, "__doc_type_name__", None) or cls.__name__.lower()
+        return super().__init__(meta=meta, **kwargs)
 
     def _members(self):
         return {
