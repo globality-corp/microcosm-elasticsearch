@@ -8,7 +8,6 @@ Intended to be duck-type compatible with `microcosm_postgres.store.Store`.
 
 """
 from contextlib import contextmanager
-from inspect import isclass
 from time import time
 from uuid import uuid4
 

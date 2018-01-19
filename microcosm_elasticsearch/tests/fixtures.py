@@ -16,7 +16,6 @@ def create_example_index(graph):
 
 
 class Person(Model):
-    doctype = Keyword(required=True)
     first = Text(required=True)
     middle = Text(required=False)
     last = Text(required=True)
