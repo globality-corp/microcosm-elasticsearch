@@ -2,6 +2,8 @@
 Index search.
 
 """
+from elasticsearch_dsl.mapping import Mapping
+
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 
 
@@ -23,6 +25,12 @@ class SearchIndex:
         same type.
 
     """
+    __mapping_type_name__ = "doc"
+
+    @property
+    def mapping_type_name(self):
+        return self.__class__.__mapping_type_name__
+
     @property
     def doc_type_field(self):
         """
@@ -42,16 +50,20 @@ class SearchIndex:
         self.index = index
         # Mapping from ES custom type field to corresponding model class
         self.doc_types = dict()
+        self.mapping = Mapping(self.mapping_type_name)
         if doc_type is not None:
             self.register_doc_type(doc_type)
 
-
     def register_doc_type(self, model_class):
-        if hasattr(model_class, "__doc_type__"):
-            doc_type = model_class.__doc_type__
-        else:
-            doc_type = model_class.__name__.lower()
-        self.doc_types[doc_type] = model_class
+        model_doctype = model_class.get_model_doctype()
+        self.doc_types[model_doctype] = model_class
+        self.update_mapping(model_class)
+
+    def update_mapping(self, model_class):
+        mapping_fields = model_class._doc_type.mapping.to_dict()[self.mapping_type_name]["properties"]
+        for name, definition in mapping_fields.items():
+            self.mapping.field(name, definition)
+        self.index.mapping(self.mapping)
 
     @property
     def index_name(self):
@@ -105,7 +117,7 @@ class SearchIndex:
         hit_doc_type = getattr(hit, self.doc_type_field, None)
         hit_model_class = self.doc_types.get(hit_doc_type)
         if hit_doc_type is not None and hit_model_class is not None:
-            return  hit_model_class(**hit._d_)
+            return hit_model_class(**hit._d_)
         # Will return be a generic `Hit`
         return hit
 
