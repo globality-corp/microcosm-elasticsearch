@@ -21,13 +21,11 @@ class ModelOptions(DocTypeOptions):
         super().__init__(name, bases, attrs)
 
 
-class ModelBase(DocType):
+class Model(DocType, metaclass=ModelMeta):
     """
-    Every persistent entity should have a primary key id and created/updated timestamps.
-
-    `ModelBase` has all the behavior we want from the `Model` base class; but since it defines
-    a __doctype_field__ we want it to avoid the special behavior defined in `ModelMeta`. This is why
-    `Model` inherits from this class and has the `ModelMeta` metaclass.
+    Base for all models. Any model instance has a primary key and created/updated timestamps,
+    as well as a field indicating the doctype (set via the metaclass, whose value defautls to the lowercased
+    model name).
 
     """
     # By default when creating a document from a `Model` subclass instance
@@ -40,6 +38,7 @@ class ModelBase(DocType):
     # Note that if you change it here you should also override the SearchIndex's `mapping_type_name` property
     __doctype_field__ = "doctype"
 
+    # Every persistent entity should have a primary key id and created/updated timestamps.
     id = Keyword(required=True)
     created_at = Date(required=True)
     updated_at = Date(required=True)
@@ -69,7 +68,3 @@ class ModelBase(DocType):
 
     def __hash__(self):
         return id(self) if self.id is None else hash(self.id)
-
-
-class Model(ModelBase, metaclass=ModelMeta):
-    pass
