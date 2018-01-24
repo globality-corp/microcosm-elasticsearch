@@ -14,6 +14,59 @@ Elasticsearch configuration using [microcosm](https://github.com/globality-corp/
 
  - Includes an implementation of a persistence `Store` using Elasticsarch
 
+### Basic usage
+
+See `fixtures.py` for a minimal example of how to define an index, some models, a store and search index. 
+
+### Polymorphic models
+
+Starting with version 6 ElasticSearch is deprecating the usage of mapping types - see [here](https://www.elastic.co/guide/en/elasticsearch/reference/master/removal-of-types.html).
+One way to still have polymorphic indices is for the user to define a mapping field meant to hold the doctype. `microcosm-elasticsearch` supports this by default by adding a `doctype` field to every `Model`. The field value defaults to the lowercased model class name.
+
+For example if I have a model:
+```
+from elasticsearch_dsl.field import Text
+from microcosm_elasticsearch import Model
+
+class Person(Model):
+    first = Text()
+    last = Text()
+```
+
+If I create a `Person`:
+```
+    person_store.create(Person(first="William", last="The Conqueror"))
+```
+then the record in ElasticSearch will look like
+```
+{
+    "first": "William",
+    "last": "The Conqueror",
+    "doctype": "person"
+}
+
+```
+
+To override those defaults, one can override the model's `__doctype_field__` and `__doctype_name__` to change the field name, and its value for that model, respectively. If we change the previous `Person` model in that way:
+
+```
+class Person(Model):
+    __doctype_field__ = "the_doctype_field" 
+    __doctype_name__ = "the_person"
+
+    first = Text()
+    last = Text()
+```
+Then creating a `Person` in the exact same way as before, its record in ElasticSearch will look like:
+```
+{
+    "first": "William",
+    "last": "The Conqueror",
+    "the_doctype_field": "the_person"
+}
+```
+
+Note that the model's `__doctype_field__` attribute needs to match the corresponding `SearchIndex`'s `doc_type_field` property.
 
 ## Testing
 

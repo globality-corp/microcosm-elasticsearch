@@ -8,12 +8,23 @@ from elasticsearch_dsl.document import DocTypeOptions, DocTypeMeta
 
 class ModelMeta(DocTypeMeta):
     def __new__(cls, name, bases, attrs):
+        """
+        The logic here is the same as
+        https://github.com/elastic/elasticsearch-dsl-py/blob/master/elasticsearch_dsl/document.py#L25
+        We're overriding the metaclass to use `ModelOptions` instead of `DocTypeOptions`
+
+        """
         attrs["_doc_type"] = ModelOptions(name, bases, attrs)
         return super(DocTypeMeta, cls).__new__(cls, name, bases, attrs)
 
 
 class ModelOptions(DocTypeOptions):
     def __init__(self, name, bases, attrs):
+        """
+        Overriding this method to dynamically define a field holding the document type
+        which defines which `Model` that document should be cast to
+
+        """
         if "__doctype_field__" in attrs:
             # Dynamically set the field for polymorphic doctype
             doctype_field_name = attrs["__doctype_field__"]
@@ -24,8 +35,9 @@ class ModelOptions(DocTypeOptions):
 class Model(DocType, metaclass=ModelMeta):
     """
     Base for all models. Any model instance has a primary key and created/updated timestamps,
-    as well as a field indicating the doctype (set via the metaclass, whose value defautls to the lowercased
-    model name).
+    as well as a field indicating the doctype (set via the metaclass).
+
+    See README#polymorphic-models for more details
 
     """
     # By default when creating a document from a `Model` subclass instance
