@@ -6,7 +6,16 @@ mapping type and doctype field
 
 """
 from elasticsearch_dsl import Keyword, Text
-from hamcrest import assert_that, all_of, contains_inanyorder, has_length, has_property, instance_of
+from hamcrest import (
+    assert_that,
+    all_of,
+    contains_inanyorder,
+    has_entries,
+    has_key,
+    has_length,
+    has_property,
+    instance_of,
+)
 from microcosm.api import create_object_graph
 from microcosm.decorators import binding
 
@@ -41,6 +50,21 @@ class OtherPlayer(OtherPerson):
         doc_type = "different_mapping"
 
 
+class Car(Model):
+    """
+    This one does not inherit from `OtherPerson`, we"re testing
+    that its mapping doesn"t erase the mapping from the other models
+
+    """
+    __doctype_field__ = "other_doctype"
+    __doctype_name__ = "car"
+
+    license_plate = Text(required=True)
+
+    class Meta:
+        doc_type = "different_mapping"
+
+
 class OtherPersonSearchIndex(SearchIndex):
     @property
     def mapping_type_name(self):
@@ -62,13 +86,19 @@ def create_other_search_index(graph):
 @binding("other_person_store")
 class OtherPersonStore(Store):
     def __init__(self, graph):
-        super(OtherPersonStore, self).__init__(graph, graph.other_example_index, OtherPerson, graph.other_search_index)
+        super().__init__(graph, graph.other_example_index, OtherPerson, graph.other_search_index)
 
 
 @binding("other_player_store")
 class OtherPlayerStore(Store):
     def __init__(self, graph):
-        super(OtherPlayerStore, self).__init__(graph, graph.other_example_index, OtherPlayer, graph.other_search_index)
+        super().__init__(graph, graph.other_example_index, OtherPlayer, graph.other_search_index)
+
+
+@binding("car_store")
+class CarStore(Store):
+    def __init__(self, graph):
+        super().__init__(graph, graph.other_example_index, Car, graph.other_search_index)
 
 
 class TestMapping:
@@ -76,6 +106,7 @@ class TestMapping:
         self.graph = create_object_graph("example", testing=True)
         self.other_person_store = self.graph.other_person_store
         self.other_player_store = self.graph.other_player_store
+        self.car_store = self.graph.car_store
         self.search_index = self.graph.other_search_index
         self.graph.elasticsearch_index_registry.createall(force=True)
 
@@ -89,6 +120,30 @@ class TestMapping:
         )
 
     def test_mapping(self):
+        mapping = self.graph.other_example_index.get_mapping()
+
+        assert_that(
+            mapping["example_v1_test"]["mappings"],
+            has_key("different_mapping"),
+        )
+
+        assert_that(
+            mapping["example_v1_test"]["mappings"]["different_mapping"],
+            has_entries({
+                "properties": has_entries({
+                    "created_at": {"type": "date"},
+                    "first": {"type": "text"},
+                    "id": {"type": "keyword"},
+                    "jersey_number": {"type": "keyword"},
+                    "license_plate": {"type": "text"},
+                    "last": {"type": "text"},
+                    "middle": {"type": "text"},
+                    "other_doctype": {"type": "keyword"},
+                    "updated_at": {"type": "date"}
+                }),
+            })
+        )
+
         with self.other_person_store.flushing():
             self.graph.other_person_store.create(self.kevin)
         with self.other_player_store.flushing():

@@ -25,7 +25,7 @@ class ModelOptions(DocTypeOptions):
         which defines which `Model` that document should be cast to
 
         """
-        if "__doctype_field__" in attrs:
+        if "__doctype_field__" in attrs and attrs['__doctype_field__'] is not None:
             # Dynamically set the field for polymorphic doctype
             doctype_field_name = attrs["__doctype_field__"]
             attrs[doctype_field_name] = Keyword(required=True)
@@ -45,19 +45,23 @@ class Model(DocType, metaclass=ModelMeta):
     # To override this declare:
     # __doctype_name__ = "<other name>"
 
-    # The following will set up a field to hold the document's polymorphic doctype
-    # By default the field name is "doctype", override in child classes to change this
+    # Set the following to rename the "doctype" field which hold the document's polymorphic doc type
     # Note that if you change it here you should also override the SearchIndex's `mapping_type_name` property
-    __doctype_field__ = "doctype"
+    __doctype_field__ = None
 
     # Every persistent entity should have a primary key id and created/updated timestamps.
+
+    if __doctype_field__ is not None:
+        doctype = Keyword(required=True)
+
     id = Keyword(required=True)
     created_at = Date(required=True)
     updated_at = Date(required=True)
 
     def __init__(self, meta=None, **kwargs):
         cls = self.__class__
-        kwargs[cls.__doctype_field__] = cls.get_model_doctype()
+        doctype_field = cls.__doctype_field__ or "doctype"
+        kwargs[doctype_field] = cls.get_model_doctype()
         return super().__init__(meta=meta, **kwargs)
 
     @classmethod
