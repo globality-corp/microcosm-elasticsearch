@@ -2,6 +2,8 @@
 Index search.
 
 """
+from elasticsearch_dsl.mapping import Mapping
+
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 
 
@@ -23,18 +25,45 @@ class SearchIndex:
         same type.
 
     """
-    def __init__(self, graph, index, model_class, doc_type=None):
+    __mapping_type_name__ = "doc"
+
+    @property
+    def mapping_type_name(self):
+        return self.__class__.__mapping_type_name__
+
+    @property
+    def doc_type_field(self):
+        """
+        Defines document field used to determine the document's polymorphic type in a single-mapping-type index
+
+        """
+        return "doctype"
+
+    def __init__(self, graph, index, doc_type=None):
         """
         :param graph: the object graph
         :param index: the name of an index to use
-        :param model_class: the model to return in the results list
         :param doc_type: the doc type to search for; uses the index's doc types if omitted
 
         """
         self.elasticsearch_client = graph.elasticsearch_client
         self.index = index
-        self.model_class = model_class
-        self.doc_type = doc_type
+        # Mapping from ES custom type field to corresponding model class
+        self.doc_types = dict()
+        self.mapping = Mapping(self.mapping_type_name)
+        if doc_type is not None:
+            self.register_doc_type(doc_type)
+
+    def register_doc_type(self, model_class):
+        model_doctype = model_class.get_model_doctype()
+        self.doc_types[model_doctype] = model_class
+        self.update_mapping(model_class)
+
+    def update_mapping(self, model_class):
+        mapping_fields = model_class._doc_type.mapping.to_dict()[self.mapping_type_name]["properties"]
+        for name, definition in mapping_fields.items():
+            self.mapping.field(name, definition)
+        self.index.mapping(self.mapping)
 
     @property
     def index_name(self):
@@ -85,6 +114,11 @@ class SearchIndex:
         Resolve this hit into a model instance.
 
         """
+        hit_doc_type = getattr(hit, self.doc_type_field, None)
+        hit_model_class = self.doc_types.get(hit_doc_type)
+        if hit_doc_type is not None and hit_model_class is not None:
+            return hit_model_class(**hit._d_)
+        # Will return be a generic `Hit`
         return hit
 
     def _to_list(self, results):
@@ -101,12 +135,11 @@ class SearchIndex:
         """
         Create a search query.
 
-        Starts with the index's search function. Customizes with the provided doc type, if any.
+        Starts with the index's search function; customizes with the provided doc types, if any
 
         """
         query = self.index.search()
-        if self.doc_type is not None:
-            query = query.doc_type().doc_type(self.doc_type)
+        query = query.filter("terms", **{self.doc_type_field: [type_name for type_name in self.doc_types]})
         return query
 
     def _order_by(self, query, **kwargs):
@@ -136,4 +169,4 @@ class SearchIndex:
 
     @classmethod
     def for_only(cls, graph, index, doc_type):
-        return cls(graph, index, doc_type, doc_type)
+        return cls(graph, index, doc_type)
