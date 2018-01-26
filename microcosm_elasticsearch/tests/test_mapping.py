@@ -5,7 +5,7 @@ The fixtures below are the same as in fixtures.py, but we override defaults to s
 mapping type and doctype field
 
 """
-from elasticsearch_dsl import Keyword, Text
+from elasticsearch_dsl import analyzer, Completion, Keyword, Text
 from hamcrest import (
     assert_that,
     all_of,
@@ -60,6 +60,13 @@ class Car(Model):
     __doctype_name__ = "car"
 
     license_plate = Text(required=True)
+    # Add complex field to test that mapping is properly merged
+    _suggest_field = Completion(
+        analyzer=analyzer("simple", tokenizer="standard", filter=["lowercase"]),
+        contexts=[{"name": "license_plate", "type": "category", "path": "license_plate"}],
+        preserve_separators=False,
+        preserve_position_increments=False,
+    )
 
     class Meta:
         doc_type = "different_mapping"
@@ -139,7 +146,19 @@ class TestMapping:
                     "last": {"type": "text"},
                     "middle": {"type": "text"},
                     "other_doctype": {"type": "keyword"},
-                    "updated_at": {"type": "date"}
+                    "updated_at": {"type": "date"},
+                    "_suggest_field": {
+                        "analyzer": "simple",
+                        "contexts": [{
+                            "name": "license_plate",
+                            "path": "license_plate",
+                            "type": "CATEGORY",
+                        }],
+                        "max_input_length": 50,
+                        "preserve_position_increments": False,
+                        "preserve_separators": False,
+                        "type": "completion"
+                    },
                 }),
             })
         )
