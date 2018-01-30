@@ -60,9 +60,7 @@ class SearchIndex:
         self.update_mapping(model_class)
 
     def update_mapping(self, model_class):
-        mapping_fields = model_class._doc_type.mapping.to_dict()[self.mapping_type_name]["properties"]
-        for name, definition in mapping_fields.items():
-            self.mapping.field(name, definition)
+        self.mapping.update(model_class._doc_type.mapping)
         self.index.mapping(self.mapping)
 
     @property

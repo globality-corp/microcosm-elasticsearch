@@ -5,7 +5,9 @@ The fixtures below are the same as in fixtures.py, but we override defaults to s
 mapping type and doctype field
 
 """
-from elasticsearch_dsl import Keyword, Text
+from contextlib import contextmanager
+
+from elasticsearch_dsl import analyzer, Completion, Keyword, Text
 from hamcrest import (
     assert_that,
     all_of,
@@ -19,6 +21,7 @@ from hamcrest import (
 from microcosm.api import create_object_graph
 from microcosm.decorators import binding
 
+import microcosm_elasticsearch.tests.fixtures  # noqa
 from microcosm_elasticsearch.models import Model
 from microcosm_elasticsearch.searching import SearchIndex
 from microcosm_elasticsearch.store import Store
@@ -30,7 +33,6 @@ def create_other_example_index(graph):
 
 
 class OtherPerson(Model):
-    __doctype_field__ = "other_doctype"
     __doctype_name__ = "modified_person"
 
     class Meta:
@@ -56,10 +58,16 @@ class Car(Model):
     that its mapping doesn"t erase the mapping from the other models
 
     """
-    __doctype_field__ = "other_doctype"
     __doctype_name__ = "car"
 
     license_plate = Text(required=True)
+    # Add complex field to test that mapping is properly merged
+    _suggest_field = Completion(
+        analyzer=analyzer("simple", tokenizer="standard", filter=["lowercase"]),
+        contexts=[{"name": "license_plate", "type": "category", "path": "license_plate"}],
+        preserve_separators=False,
+        preserve_position_increments=False,
+    )
 
     class Meta:
         doc_type = "different_mapping"
@@ -69,10 +77,6 @@ class OtherPersonSearchIndex(SearchIndex):
     @property
     def mapping_type_name(self):
         return "different_mapping"
-
-    @property
-    def doc_type_field(self):
-        return "other_doctype"
 
 
 @binding("other_search_index")
@@ -102,14 +106,68 @@ class CarStore(Store):
 
 
 class TestMapping:
-    def setup(self):
+    @contextmanager
+    def setup_graph(self):
         self.graph = create_object_graph("example", testing=True)
-        self.other_person_store = self.graph.other_person_store
-        self.other_player_store = self.graph.other_player_store
-        self.car_store = self.graph.car_store
-        self.search_index = self.graph.other_search_index
+        yield
         self.graph.elasticsearch_index_registry.createall(force=True)
 
+    def test_default_mapping(self):
+        """
+        Test that the mapping is properly when using all the defaults
+
+        """
+        with self.setup_graph():
+            self.graph.use(
+                "example_index",
+                "example_search_index",
+                "person_store",
+                "player_store",
+            )
+            self.person_store = self.graph.person_store
+            self.player_store = self.graph.player_store
+            self.search_index = self.graph.example_search_index
+        mapping = self.graph.example_index.get_mapping()
+
+        # Default mapping type name
+        assert_that(
+            mapping["example_v1_test"]["mappings"],
+            has_key("doc"),
+        )
+
+        assert_that(
+            mapping["example_v1_test"]["mappings"]["doc"],
+            has_entries({
+                "properties": has_entries({
+                    "created_at": {"type": "date"},
+                    "first": {"type": "text"},
+                    "id": {"type": "keyword"},
+                    "jersey_number": {"type": "keyword"},
+                    "last": {"type": "text"},
+                    "middle": {"type": "text"},
+                    "doctype": {"type": "keyword"},
+                    "updated_at": {"type": "date"},
+                })
+            })
+        )
+
+    def test_non_default_mapping(self):
+        """
+        Test that the mapping is properly defined when the defaults are overriden
+
+        """
+        with self.setup_graph():
+            self.graph.use(
+                "other_example_index",
+                "other_search_index",
+                "other_person_store",
+                "other_player_store",
+                "car_store",
+            )
+            self.car_store = self.graph.car_store
+            self.other_person_store = self.graph.other_person_store
+            self.other_player_store = self.graph.other_player_store
+            self.search_index = self.graph.other_search_index
         self.kevin = OtherPerson(
             first="Kevin",
             last="Durant",
@@ -119,7 +177,6 @@ class TestMapping:
             last="Curry",
         )
 
-    def test_mapping(self):
         mapping = self.graph.other_example_index.get_mapping()
 
         assert_that(
@@ -138,8 +195,20 @@ class TestMapping:
                     "license_plate": {"type": "text"},
                     "last": {"type": "text"},
                     "middle": {"type": "text"},
-                    "other_doctype": {"type": "keyword"},
-                    "updated_at": {"type": "date"}
+                    "doctype": {"type": "keyword"},
+                    "updated_at": {"type": "date"},
+                    "_suggest_field": {
+                        "analyzer": "simple",
+                        "contexts": [{
+                            "name": "license_plate",
+                            "path": "license_plate",
+                            "type": "CATEGORY",
+                        }],
+                        "max_input_length": 50,
+                        "preserve_position_increments": False,
+                        "preserve_separators": False,
+                        "type": "completion"
+                    },
                 }),
             })
         )
@@ -160,11 +229,11 @@ class TestMapping:
             result,
             contains_inanyorder(
                 all_of(
-                    has_property("other_doctype", "modified_person"),
+                    has_property("doctype", "modified_person"),
                     instance_of(OtherPerson)
                 ),
                 all_of(
-                    has_property("other_doctype", "modified_player"),
+                    has_property("doctype", "modified_player"),
                     instance_of(OtherPlayer),
                 ),
             )
