@@ -236,7 +236,7 @@ class Store:
             )
             for action, instance in actions
         ]
-        
+
         return [
             bulk(
                 client=self.elasticsearch_client,
