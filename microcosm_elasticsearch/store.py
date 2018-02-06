@@ -10,6 +10,7 @@ Intended to be duck-type compatible with `microcosm_postgres.store.Store`.
 from contextlib import contextmanager
 from time import time
 from uuid import uuid4
+from elasticsearch.helpers import bulk
 
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 
@@ -186,3 +187,65 @@ class Store:
             using=self.elasticsearch_client,
         )
         return True
+
+    def _add_id_to_instance(self, instance):
+        """
+        Defines an ID for an instance if not previously defined
+
+        Set the internal _id equal to the instance ID
+
+        """
+        if instance.id is None:
+            instance.id = self.new_object_id()
+
+        instance._id = instance.id
+        return instance
+
+    def _add_op_type(self, instance, op_type):
+        """
+        Decorates an instance with a bulk operation type
+
+        """
+        instance["_op_type"] = op_type
+        return instance
+
+    def _batch_bulk(self, actions, batch_size):
+        """
+        Breaks list of actions into batches
+
+        """
+        num_actions = len(actions)
+        for offset in range(0, num_actions, batch_size):
+            yield actions[offset:min(offset + batch_size, num_actions)]
+
+    @translate_elasticsearch_errors
+    def bulk(self, actions, batch_size):
+        """
+        Bulk index entities
+
+        actions: list of tuples of (action, instance) to be included in the bulk
+        batch_size: number of records for each bulk call
+
+        All errors and exceptions are suppressed and are returned in the response report
+
+        """
+        actions = [
+            self._add_op_type(
+                instance=self._add_id_to_instance(instance).to_dict(True),
+                op_type=action,
+            )
+            for action, instance in actions
+        ]
+        
+        return [
+            bulk(
+                client=self.elasticsearch_client,
+                actions=actions_batch,
+                index=self.index._name,
+                raise_on_exception=False,
+                raise_on_error=False,
+            ) for actions_batch in self._batch_bulk(
+                actions=actions,
+                batch_size=batch_size,
+            )
+        ]

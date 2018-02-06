@@ -268,3 +268,20 @@ class TestStore:
                 has_property("last", "Durant"),
             ),
         )
+
+    def test_bulk(self):
+        self.store.bulk(
+            actions=[
+                ("index", self.kevin)
+            ],
+            batch_size=1,
+        )
+        assert_that(
+            self.store.retrieve(self.kevin.id),
+            all_of(
+                has_property("id", self.kevin.id),
+                has_property("first", "Kevin"),
+                has_property("middle", none()),
+                has_property("last", "Durant"),
+            ),
+        )
