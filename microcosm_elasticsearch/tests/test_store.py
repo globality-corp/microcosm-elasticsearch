@@ -10,6 +10,8 @@ from hamcrest import (
     contains,
     equal_to,
     has_property,
+    has_key,
+    has_entry,
     is_,
     none,
     raises,
@@ -268,3 +270,46 @@ class TestStore:
                 has_property("last", "Durant"),
             ),
         )
+
+    def test_bulk(self):
+        self.store.bulk(
+            actions=[
+                ("index", self.kevin)
+            ],
+            batch_size=1,
+        )
+        assert_that(
+            self.store.retrieve(self.kevin.id),
+            all_of(
+                has_property("id", self.kevin.id),
+                has_property("first", "Kevin"),
+                has_property("middle", none()),
+                has_property("last", "Durant"),
+            ),
+        )
+
+    def test_bulk_with_report(self):
+        results = self.store.bulk(
+            actions=[
+                ("index", self.kevin),
+                ("delete", self.steph),
+            ],
+            batch_size=2,
+        )
+        assert_that(
+            self.store.retrieve(self.kevin.id),
+            all_of(
+                has_property("id", self.kevin.id),
+                has_property("first", "Kevin"),
+                has_property("middle", none()),
+                has_property("last", "Durant"),
+            ),
+        )
+        result = results[0]
+        # Updated items
+        assert_that(result[0], is_(equal_to(1)))
+        # Report on failed to delete items
+        assert_that(result[1], contains(
+            has_key('delete'),
+        ))
+        assert_that(result[1][0]['delete'], has_entry('result', 'not_found'))
