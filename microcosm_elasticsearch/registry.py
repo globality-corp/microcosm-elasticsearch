@@ -2,7 +2,6 @@
 Manage a set of indexes and/or aliases.
 
 """
-from elasticsearch.exceptions import RequestError
 from elasticsearch_dsl import Index
 from inflection import underscore
 
