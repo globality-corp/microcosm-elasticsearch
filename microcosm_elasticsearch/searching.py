@@ -101,10 +101,12 @@ class SearchIndex:
         results = query.execute()
         return self._to_list(results), query.count()
 
-    def _search(self, **kwargs):
+    def _search(self, explain=False, **kwargs):
         query = self._query()
         query = self._order_by(query, **kwargs)
         query = self._filter(query, **kwargs)
+        if explain:
+            query = query.extra(explain=True)
         return query
 
     def _to_instance(self, hit):
@@ -112,10 +114,12 @@ class SearchIndex:
         Resolve this hit into a model instance.
 
         """
+        # hit.meta.explanation: elasticsearch_dsl.utils.AttrDict
+        # assert 0, hit.meta.explanation.to_dict()
         hit_doc_type = getattr(hit, self.doc_type_field, None)
         hit_model_class = self.doc_types.get(hit_doc_type)
         if hit_doc_type is not None and hit_model_class is not None:
-            return hit_model_class(**hit._d_)
+            return hit_model_class(meta=hit.meta.to_dict(), **hit._d_)
         # Will return be a generic `Hit`
         return hit
 
