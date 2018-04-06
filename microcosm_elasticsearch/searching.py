@@ -114,8 +114,6 @@ class SearchIndex:
         Resolve this hit into a model instance.
 
         """
-        # hit.meta.explanation: elasticsearch_dsl.utils.AttrDict
-        # assert 0, hit.meta.explanation.to_dict()
         hit_doc_type = getattr(hit, self.doc_type_field, None)
         hit_model_class = self.doc_types.get(hit_doc_type)
         if hit_doc_type is not None and hit_model_class is not None:
