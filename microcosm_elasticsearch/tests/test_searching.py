@@ -87,3 +87,25 @@ class TestIndexSearch:
                 has_property("id", self.steph.id),
             ),
         )
+
+    def test_search_with_explain(self):
+        """
+        hit.meta.explanation should exist when searched with explain=True
+
+        """
+        with self.person_store.flushing():
+            self.person_store.create(self.kevin)
+        assert_that(
+            self.search_index.search(explain=True),
+            contains(
+                has_property(
+                    "meta",
+                    has_property(
+                        "explanation",
+                        has_property(
+                            "value", 0.0
+                        ),
+                    ),
+                ),
+            ),
+        )
