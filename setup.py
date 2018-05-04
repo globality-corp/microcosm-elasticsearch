@@ -19,7 +19,7 @@ setup(
         "boto3>=1.5.8",
         "botocore>=1.8.22",
         "elasticsearch>=6.0.0,<7.0.0",
-        "elasticsearch-dsl==6.0.0",
+        "elasticsearch-dsl==6.1.0",
         "microcosm>=2.0.0",
         "requests[security]>=2.18.4",
         "requests-aws4auth-redux>=0.40",
