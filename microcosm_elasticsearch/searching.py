@@ -3,8 +3,36 @@ Index search.
 
 """
 from elasticsearch_dsl.mapping import Mapping
+from elasticsearch_dsl.search import Search
+from elasticsearch_dsl.response import Hit
 
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
+
+
+class SafeSearch(Search):
+    """
+    A Temporary workaround of this bug https://github.com/elastic/elasticsearch-dsl-py/issues/863
+    This, along with method _index_search should be removed once we upgrade to elasticsearch_dsl 6.2.0.
+
+    """
+    def _resolve_nested(self, field, parent_class=None):
+        doc_class = Hit
+        nested_field = None
+        if hasattr(parent_class, '_doc_type'):
+            nested_field = parent_class._doc_type.resolve_field(field)
+
+        else:
+            for dt in self._doc_type:
+                if not hasattr(dt, '_doc_type'):
+                    continue
+                nested_field = dt._doc_type.resolve_field(field)
+                if nested_field is not None:
+                    break
+
+        if nested_field is not None:
+            return nested_field._doc_class
+
+        return doc_class
 
 
 class SearchIndex:
@@ -138,9 +166,20 @@ class SearchIndex:
         Starts with the index's search function; customizes with the provided doc types, if any
 
         """
-        query = self.index.search()
+        query = self._index_search()
         query = query.filter("terms", **{self.doc_type_field: [type_name for type_name in self.doc_types]})
         return query
+
+    def _index_search(self):
+        """
+        Temporary replacement of self.index.search() to workaround a bug.
+
+        """
+        return SafeSearch(
+            using=self.index._using,
+            index=self.index._name,
+            doc_type=[self.index._doc_types.get(k, k) for k in self.index._mappings],
+        )
 
     def _order_by(self, query, **kwargs):
         """
