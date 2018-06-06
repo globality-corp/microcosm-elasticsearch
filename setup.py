@@ -16,11 +16,10 @@ setup(
     zip_safe=False,
     keywords="microcosm",
     install_requires=[
-        "boto3>=1.5.8",
-        "botocore>=1.8.22",
+        "boto3>=1.7.33",
         "elasticsearch>=6.0.0,<7.0.0",
         "elasticsearch-dsl==6.0.0",
-        "microcosm>=2.0.0",
+        "microcosm>=2.4.0",
         "requests[security]>=2.18.4",
         "requests-aws4auth-redux>=0.40",
     ],
