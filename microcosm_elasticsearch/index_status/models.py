@@ -8,13 +8,9 @@ class IndexStatus:
     def __init__(
         self,
         name,
-        aliases,
-        mapping,
+        data,
         stats,
-        settings,
     ):
         self.name = name
-        self.aliases = aliases
-        self.mapping = mapping
+        self.data = data
         self.stats = stats
-        self.settings = settings
