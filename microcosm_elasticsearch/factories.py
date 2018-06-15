@@ -3,16 +3,15 @@ Factory that configures Elasticsearch client.
 
 """
 from datetime import datetime, timedelta
-from distutils.util import strtobool
 from functools import partial
 from os import environ
 
 from boto3 import Session
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from microcosm.api import defaults
+from microcosm.config.types import boolean
+from microcosm.config.validation import typed
 from requests_aws4auth import AWS4Auth
-
-from microcosm_elasticsearch.serialization import JSONSerializerPython2
 
 
 @defaults(
@@ -25,9 +24,8 @@ from microcosm_elasticsearch.serialization import JSONSerializerPython2
     # We want testing to "just work"; no sane production application should use these.
     username="elastic",
     password="changeme",
-    use_aws4auth="false",
-    use_aws_instance_metadata="false",
-    use_python2_serializer="false",
+    use_aws4auth=typed(boolean, default_value=False),
+    use_aws_instance_metadata=typed(boolean, default_value=False),
 )
 def configure_elasticsearch_client(graph):
     """
@@ -38,15 +36,10 @@ def configure_elasticsearch_client(graph):
     """
     config = dict()
 
-    if strtobool(graph.config.elasticsearch_client.use_aws4auth):
+    if graph.config.elasticsearch_client.use_aws4auth:
         configure_elasticsearch_aws(config, graph)
     else:
         configure_elasticsearch(config, graph)
-
-    if strtobool(graph.config.elasticsearch_client.use_python2_serializer):
-        config.update(
-            serializer=JSONSerializerPython2(),
-        )
 
     return Elasticsearch(**config)
 
@@ -95,7 +88,7 @@ def configure_elasticsearch_aws(config, graph, host=None):
     """
     aws_region = graph.config.elasticsearch_client.aws_region
 
-    if strtobool(graph.config.elasticsearch_client.use_aws_instance_metadata):
+    if graph.config.elasticsearch_client.use_aws_instance_metadata:
         credentials = _next_aws_credentials(graph)
 
         aws_access_key_id = credentials.get("access_id")
