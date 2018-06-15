@@ -20,6 +20,7 @@ setup(
         "elasticsearch>=6.0.0,<7.0.0",
         "elasticsearch-dsl==6.0.0",
         "microcosm>=2.4.0",
+        "microcosm-flask>=1.0.1",
         "requests[security]>=2.18.4",
         "requests-aws4auth-redux>=0.40",
     ],
@@ -32,6 +33,7 @@ setup(
         "microcosm.factories": [
             "elasticsearch_client = microcosm_elasticsearch.factories:configure_elasticsearch_client",
             "elasticsearch_index_registry = microcosm_elasticsearch.registry:IndexRegistry",
+            "index_status_convention = microcosm_elasticsearch.index_status.convention:configure_status_convention",
         ],
     },
     tests_require=[
