@@ -37,7 +37,8 @@ class IndexStatusStore:
                     name=name,
                     aliases=aliases,
                     mapping=mapping,
-                    stats=stats
+                    stats=stats,
+                    settings=data["settings"],
                 )
             )
         return indices

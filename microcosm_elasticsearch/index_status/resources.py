@@ -35,3 +35,4 @@ class IndexStatusSchema(Schema):
     )
     name = fields.String()
     stats = fields.Nested(StatsSchema)
+    settings = fields.Raw()

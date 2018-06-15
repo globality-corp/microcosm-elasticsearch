@@ -11,8 +11,10 @@ class IndexStatus:
         aliases,
         mapping,
         stats,
+        settings,
     ):
         self.name = name
         self.aliases = aliases
         self.mapping = mapping
         self.stats = stats
+        self.settings = settings
