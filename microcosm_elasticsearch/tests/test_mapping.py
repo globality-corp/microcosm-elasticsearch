@@ -145,6 +145,8 @@ class TestMapping:
                     "jersey_number": {"type": "keyword"},
                     "last": {"type": "text"},
                     "middle": {"type": "text"},
+                    # EnumField should have a mapping type of 'keyword'
+                    "origin_planet": {"type": "keyword"},
                     "doctype": {"type": "keyword"},
                     "updated_at": {"type": "date"},
                 })
