@@ -11,6 +11,8 @@ class EnumField(Keyword):
     def __init__(self, enum_class, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Leading underscore prevents attribute from being added to document in ElasticSearch
+        if not issubclass(enum_class, Enum):
+            raise TypeError("The class passed into an EnumField should a subclass of Enum")
         self._enum_class = enum_class
 
     def _serialize(self, data):
