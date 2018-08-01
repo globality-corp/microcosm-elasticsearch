@@ -16,19 +16,27 @@ from microcosm.config.validation import typed
 
 
 def make_url_safe(raw_url):
+    """
+    Make sure all query parameters are URL encoded
+
+    Some servers can deal with some parameters not being
+    strictly urlencoded, but some canonization inside
+    the signing logic means that we have to pre-urlencode
+    all query parameters.
+    """
     url = urlparse(raw_url)
-    path = url.path or '/'
-    querystring = ''
+    path = url.path or "/"
     if url.query:
-        querystring = '?' + urlencode(parse_qs(url.query,
+        querystring = "?" + urlencode(parse_qs(url.query,
                                                keep_blank_values=True),
                                       doseq=True)
-    safe_url = (url.scheme +
-                '://' +
-                url.netloc +
-                path +
-                querystring)
-    return safe_url
+    else:
+        querystring = ""
+    return (url.scheme +
+            "://" +
+            url.netloc +
+            path +
+            querystring)
 
 
 def awsv4sign(r, *, session, region):
