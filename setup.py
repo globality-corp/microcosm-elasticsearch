@@ -22,7 +22,6 @@ setup(
         "microcosm>=2.4.0",
         "microcosm-flask>=1.0.1",
         "requests[security]>=2.18.4",
-        "requests-aws4auth-redux>=0.40",
     ],
     setup_requires=[
         "nose>=1.3.6",
