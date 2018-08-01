@@ -54,9 +54,9 @@ def configure_elasticsearch_client(graph):
     """
     if graph.config.elasticsearch_client.use_aws4auth:
         region = graph.config.elasticsearch_client.aws_region
-        awsauth = functools.partial(aws4sign,
-                                    session=Session(),
-                                    region=region)
+        awsauth = partial(aws4sign,
+                          session=Session(),
+                          region=region)
         config = dict(
                       hosts=[{
                           "host": graph.config.elasticsearch_client.host,
