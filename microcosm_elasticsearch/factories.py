@@ -31,10 +31,10 @@ def make_url_safe(raw_url):
 
 def awsv4sign(r, *, session, region):
     request = AWSRequest(method=r.method.upper(),
-                         url=make_safe_url(r.url),
+                         url=make_url_safe(r.url),
                          data=r.body)
-    credentials = self.session.get_credentials()
-    SigV4Auth(credentials, 'es', self.region).add_auth(request)
+    credentials = session.get_credentials()
+    SigV4Auth(credentials, 'es', region).add_auth(request)
     r.headers.update(dict(request.headers.items()))
     return r
 
@@ -54,7 +54,7 @@ def configure_elasticsearch_client(graph):
     """
     if graph.config.elasticsearch_client.use_aws4auth:
         region = graph.config.elasticsearch_client.aws_region
-        awsauth = partial(aws4sign,
+        awsauth = partial(awsv4sign,
                           session=Session(),
                           region=region)
         config = dict(
