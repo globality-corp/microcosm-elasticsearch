@@ -14,6 +14,7 @@ from microcosm.api import defaults
 from microcosm.config.types import boolean
 from microcosm.config.validation import typed
 
+
 def make_url_safe(raw_url):
     url = urlparse(raw_url)
     path = url.path or '/'
@@ -21,13 +22,14 @@ def make_url_safe(raw_url):
     if url.query:
         querystring = '?' + urlencode(parse_qs(url.query,
                                                keep_blank_values=True),
-                                               doseq=True)
+                                      doseq=True)
     safe_url = (url.scheme +
                 '://' +
                 url.netloc +
                 path +
                 querystring)
     return safe_url
+
 
 def awsv4sign(r, *, session, region):
     request = AWSRequest(method=r.method.upper(),
@@ -37,6 +39,7 @@ def awsv4sign(r, *, session, region):
     SigV4Auth(credentials, 'es', region).add_auth(request)
     r.headers.update(dict(request.headers.items()))
     return r
+
 
 @defaults(
     aws_region=environ.get("AWS_DEFAULT_REGION", environ.get("AWS_REGION", "us-east-1")),
