@@ -39,8 +39,7 @@ def awsv4sign(r, *, session, region):
     return r
 
 @defaults(
-    aws_region=environ.get("AWS_DEFAULT_REGION", environ.get("AWS_REGION", "us-
-east-1")),
+    aws_region=environ.get("AWS_DEFAULT_REGION", environ.get("AWS_REGION", "us-east-1")),
     host="localhost",
     # NB: these are the defaults shipped with the ES docker distribution.
     # We want testing to "just work"; no sane production application should use these.
