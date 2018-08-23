@@ -33,3 +33,22 @@ def test_createall():
     index = graph.elasticsearch_index_registry.register(name="foo", version="v1")
     graph.elasticsearch_index_registry.createall(force=True)
     assert_that(index.exists(), is_(equal_to(True)))
+
+
+def test_register_with_settings():
+    number_of_shards = 1
+    graph = create_object_graph("example", testing=True)
+    index = graph.elasticsearch_index_registry.register(
+        name="foo",
+        version="v1",
+        settings=dict(
+            number_of_shards=number_of_shards,
+        ),
+    )
+
+    graph.elasticsearch_index_registry.createall(force=True)
+
+    assert_that(
+        index.stats()["_shards"]["successful"],
+        is_(equal_to(number_of_shards)),
+    )
