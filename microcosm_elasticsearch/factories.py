@@ -2,124 +2,90 @@
 Factory that configures Elasticsearch client.
 
 """
-from datetime import datetime, timedelta
 from functools import partial
+from urllib.parse import urlparse, urlencode, parse_qs
 from os import environ
 
+from botocore.auth import SigV4Auth
+from botocore.awsrequest import AWSRequest
 from boto3 import Session
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from microcosm.api import defaults
 from microcosm.config.types import boolean
 from microcosm.config.validation import typed
-from requests_aws4auth import AWS4Auth
+
+
+def make_url_safe(raw_url):
+    """
+    Make sure all query parameters are URL encoded
+
+    Some servers can deal with some parameters not being
+    strictly urlencoded, but some canonization inside
+    the signing logic means that we have to pre-urlencode
+    all query parameters.
+    """
+    url = urlparse(raw_url)
+    path = url.path or "/"
+    if url.query:
+        querystring = "?" + urlencode(parse_qs(url.query,
+                                               keep_blank_values=True),
+                                      doseq=True)
+    else:
+        querystring = ""
+    return (url.scheme +
+            "://" +
+            url.netloc +
+            path +
+            querystring)
+
+
+def awsv4sign(r, *, session, region):
+    request = AWSRequest(method=r.method.upper(),
+                         url=make_url_safe(r.url),
+                         data=r.body)
+    credentials = session.get_credentials()
+    SigV4Auth(credentials, 'es', region).add_auth(request)
+    r.headers.update(dict(request.headers.items()))
+    return r
 
 
 @defaults(
-    aws_access_key_id=environ.get("AWS_ACCESS_KEY_ID"),
     aws_region=environ.get("AWS_DEFAULT_REGION", environ.get("AWS_REGION", "us-east-1")),
-    aws_secret_access_key=environ.get("AWS_SECRET_ACCESS_KEY"),
-    aws_session_token=environ.get("AWS_SESSION_TOKEN"),
     host="localhost",
     # NB: these are the defaults shipped with the ES docker distribution.
     # We want testing to "just work"; no sane production application should use these.
     username="elastic",
     password="changeme",
     use_aws4auth=typed(boolean, default_value=False),
-    use_aws_instance_metadata=typed(boolean, default_value=False),
 )
 def configure_elasticsearch_client(graph):
     """
     Configure Elasticsearch client using a constructed dictionary config.
-
     :returns: an Elasticsearch client instance of the configured name
-
     """
-    config = dict()
-
     if graph.config.elasticsearch_client.use_aws4auth:
-        configure_elasticsearch_aws(config, graph)
+        region = graph.config.elasticsearch_client.aws_region
+        awsauth = partial(awsv4sign,
+                          session=Session(),
+                          region=region)
+        config = dict(
+                      hosts=[{
+                          "host": graph.config.elasticsearch_client.host,
+                          "port": 443,
+                      }],
+                      connection_class=RequestsHttpConnection,
+                      http_auth=awsauth,
+                      use_ssl=True,
+                      verify_certs=True,
+                  )
     else:
-        configure_elasticsearch(config, graph)
-
+        config = dict(
+                      hosts=[
+                          graph.config.elasticsearch_client.host,
+                      ],
+                      http_auth=(
+                          graph.config.elasticsearch_client.username,
+                          graph.config.elasticsearch_client.password,
+                      ),
+                  )
     return Elasticsearch(**config)
-
-
-def configure_elasticsearch(config, graph):
-    """
-    Configure non-AWS elasticsearch
-
-    """
-    config.update(
-        hosts=[
-            graph.config.elasticsearch_client.host,
-        ],
-    )
-
-    if graph.config.elasticsearch_client.username and graph.config.elasticsearch_client.password:
-        config.update(
-            http_auth=(
-                graph.config.elasticsearch_client.username,
-                graph.config.elasticsearch_client.password,
-            ),
-        )
-
-
-def _next_aws_credentials(graph):
-    # Use the metadata service to get proper temporary access keys for signing requests
-    provider = Session()
-    credentials = provider.get_credentials()
-    return dict(
-        access_id=credentials.access_key,
-        secret_key=credentials.secret_key,
-        region=graph.config.elasticsearch_client.aws_region,
-        service="es",
-        session_token=credentials.token,
-        session_token_expiration=getattr(credentials, "_expiry_time", datetime.now() + timedelta(hours=1)),
-        next_keys=partial(_next_aws_credentials, graph),
-    )
-
-
-def configure_elasticsearch_aws(config, graph, host=None):
-    """
-    Configure requests-aws4auth to sign requests when using AWS hosted Elasticsearch.
-
-    :returns {dict} kwargs to pass the Elasticsearch client constructor
-
-    """
-    aws_region = graph.config.elasticsearch_client.aws_region
-
-    if graph.config.elasticsearch_client.use_aws_instance_metadata:
-        credentials = _next_aws_credentials(graph)
-
-        aws_access_key_id = credentials.get("access_id")
-        aws_secret_access_key = credentials.get("secret_key")
-        awsauth_kwargs = dict(
-            session_token=credentials.get("session_token"),
-            session_token_expiration=credentials.get("session_token_expiration"),
-            next_keys=credentials.get("next_keys"),
-        )
-    else:
-        aws_access_key_id = graph.config.elasticsearch_client.aws_access_key_id
-        aws_secret_access_key = graph.config.elasticsearch_client.aws_secret_access_key
-        awsauth_kwargs = dict(
-            session_token=graph.config.elasticsearch_client.aws_session_token,
-        )
-
-    awsauth = AWS4Auth(
-        aws_access_key_id,
-        aws_secret_access_key,
-        aws_region,
-        "es",
-        **awsauth_kwargs
-    )
-
-    config.update(
-        hosts=[{
-            "host": host or graph.config.elasticsearch_client.host,
-            "port": 443,
-        }],
-        connection_class=RequestsHttpConnection,
-        http_auth=awsauth,
-        use_ssl=True,
-        verify_certs=True,
-    )

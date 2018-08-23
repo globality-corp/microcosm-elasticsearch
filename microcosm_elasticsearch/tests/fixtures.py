@@ -2,12 +2,24 @@
 Test fixtures.
 
 """
+from enum import Enum
+
 from elasticsearch_dsl import Keyword, Q, Text
 from microcosm.api import binding
 
 from microcosm_elasticsearch.models import Model
 from microcosm_elasticsearch.searching import SearchIndex
 from microcosm_elasticsearch.store import Store
+
+from microcosm_elasticsearch.fields import EnumField
+
+
+class Planet(Enum):
+    EARTH = "EARTH"
+    MARS = "MARS"
+
+    def __str__(self):
+        return self.name
 
 
 @binding("example_index")
@@ -19,6 +31,8 @@ class Person(Model):
     first = Text(required=True)
     middle = Text(required=False)
     last = Text(required=True)
+
+    origin_planet = EnumField(Planet)
 
 
 class Player(Person):

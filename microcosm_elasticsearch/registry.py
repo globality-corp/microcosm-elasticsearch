@@ -16,7 +16,7 @@ class IndexRegistry:
         self.graph = graph
         self.indexes = {}
 
-    def register(self, name=None, version=None):
+    def register(self, name=None, version=None, settings=None):
         """
         Register an index locally.
 
@@ -44,6 +44,10 @@ class IndexRegistry:
             name=index_name,
             using=self.graph.elasticsearch_client,
         )
+
+        if settings:
+            index.settings(**settings)
+
         if alias_name is not None:
             index.aliases(**{alias_name: {}})
 

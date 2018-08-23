@@ -26,7 +26,7 @@ from microcosm_elasticsearch.errors import (
     ElasticsearchConflictError,
     ElasticsearchNotFoundError,
 )
-from microcosm_elasticsearch.tests.fixtures import Person
+from microcosm_elasticsearch.tests.fixtures import Person, Planet
 
 
 class TestStore:
@@ -39,10 +39,12 @@ class TestStore:
         self.kevin = Person(
             first="Kevin",
             last="Durant",
+            origin_planet=Planet.EARTH,
         )
         self.steph = Person(
             first="Steph",
             last="Curry",
+            origin_planet=Planet.MARS,
         )
 
     def test_retrieve_not_found(self):
@@ -60,6 +62,7 @@ class TestStore:
                 has_property("first", "Kevin"),
                 has_property("middle", none()),
                 has_property("last", "Durant"),
+                has_property("origin_planet", Planet.EARTH),
             ),
         )
 
