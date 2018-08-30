@@ -2,13 +2,13 @@
 version: '3'
 services:
     elasticsearch:
-        container_name: elasticsearch
+        container_name: microcosm_elasticsearch
         environment:
             ES_JAVA_OPTS: -Xms512m -Xmx512m
             bootstrap.memory_lock: 'true'
             cluster.name: docker-cluster
             http.host: 0.0.0.0
             transport.host: 127.0.0.1
-        image: docker.elastic.co/elasticsearch/elasticsearch:6.0.1
+        image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
         ports:
         - 9200:9200
