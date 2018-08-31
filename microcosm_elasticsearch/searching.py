@@ -18,11 +18,7 @@ class SearchIndex:
 
         If searching a polymorphic index, the model class should be a compatible base class.
 
-     -  It restricts the search to specific document types.
-
-        By default, all document types registered with the index are used. To query a single
-        type in a polymorphic index, the model class and document type should be set to the
-        same type.
+     -  It can restrict the search to specific document types.
 
     """
     __mapping_type_name__ = "doc"
@@ -138,15 +134,7 @@ class SearchIndex:
         Starts with the index's search function; customizes with the provided doc types, if any
 
         """
-        query = self.index.search()
-        query = self._filter_terms(query)
-        return query
-
-    def _filter_terms(self, query):
-        return query.filter(
-            "terms",
-            **{self.doc_type_field: [type_name for type_name in self.doc_types]},
-        )
+        return self.index.search()
 
     def _order_by(self, query, **kwargs):
         """
@@ -157,14 +145,26 @@ class SearchIndex:
         """
         return query.sort("-created_at")
 
-    def _filter(self, query, offset=None, limit=None, **kwargs):
+    def _filter(self, query, offset=None, limit=None, doc_type=None, doc_types=(), **kwargs):
         """
         Filter a query with user-supplied arguments.
 
+        :param doc_types: a list of legal doc types
         :param offset: pagination offset, if any
         :param limit: pagination limit, if any
 
         """
+        if doc_type or doc_types:
+            query = query.filter(
+                "terms",
+                **{
+                    self.doc_type_field: [
+                        doc_type_
+                        for doc_type_ in self._iter_doc_types(doc_type, doc_types)
+                    ],
+                },
+            )
+
         if offset is not None:
             query = query.extra(from_=offset)
 
@@ -173,6 +173,7 @@ class SearchIndex:
 
         return query
 
-    @classmethod
-    def for_only(cls, graph, index, doc_type):
-        return cls(graph, index, doc_type)
+    def _iter_doc_types(self, doc_type=None, doc_types=()):
+        if doc_type:
+            yield doc_type
+        yield from doc_types
