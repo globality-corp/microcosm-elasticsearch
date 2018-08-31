@@ -3,36 +3,8 @@ Index search.
 
 """
 from elasticsearch_dsl.mapping import Mapping
-from elasticsearch_dsl.search import Search
-from elasticsearch_dsl.response import Hit
 
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
-
-
-class SafeSearch(Search):
-    """
-    A Temporary workaround of this bug https://github.com/elastic/elasticsearch-dsl-py/issues/863
-    This, along with method _index_search should be removed once we upgrade to elasticsearch_dsl 6.2.0.
-
-    """
-    def _resolve_nested(self, field, parent_class=None):
-        doc_class = Hit
-        nested_field = None
-        if hasattr(parent_class, '_doc_type'):
-            nested_field = parent_class._doc_type.resolve_field(field)
-
-        else:
-            for dt in self._doc_type:
-                if not hasattr(dt, '_doc_type'):
-                    continue
-                nested_field = dt._doc_type.resolve_field(field)
-                if nested_field is not None:
-                    break
-
-        if nested_field is not None:
-            return nested_field._doc_class
-
-        return doc_class
 
 
 class SearchIndex:
@@ -46,11 +18,7 @@ class SearchIndex:
 
         If searching a polymorphic index, the model class should be a compatible base class.
 
-     -  It restricts the search to specific document types.
-
-        By default, all document types registered with the index are used. To query a single
-        type in a polymorphic index, the model class and document type should be set to the
-        same type.
+     -  It can restrict the search to specific document types.
 
     """
     __mapping_type_name__ = "doc"
@@ -166,20 +134,7 @@ class SearchIndex:
         Starts with the index's search function; customizes with the provided doc types, if any
 
         """
-        query = self._index_search()
-        query = query.filter("terms", **{self.doc_type_field: [type_name for type_name in self.doc_types]})
-        return query
-
-    def _index_search(self):
-        """
-        Temporary replacement of self.index.search() to workaround a bug.
-
-        """
-        return SafeSearch(
-            using=self.index._using,
-            index=self.index._name,
-            doc_type=[self.index._doc_types.get(k, k) for k in self.index._mappings],
-        )
+        return self.index.search()
 
     def _order_by(self, query, **kwargs):
         """
@@ -190,14 +145,26 @@ class SearchIndex:
         """
         return query.sort("-created_at")
 
-    def _filter(self, query, offset=None, limit=None, **kwargs):
+    def _filter(self, query, offset=None, limit=None, doc_type=None, doc_types=(), **kwargs):
         """
         Filter a query with user-supplied arguments.
 
+        :param doc_types: a list of legal doc types
         :param offset: pagination offset, if any
         :param limit: pagination limit, if any
 
         """
+        if doc_type or doc_types:
+            query = query.filter(
+                "terms",
+                **{
+                    self.doc_type_field: [
+                        doc_type_
+                        for doc_type_ in self._iter_doc_types(doc_type, doc_types)
+                    ],
+                },
+            )
+
         if offset is not None:
             query = query.extra(from_=offset)
 
@@ -206,6 +173,7 @@ class SearchIndex:
 
         return query
 
-    @classmethod
-    def for_only(cls, graph, index, doc_type):
-        return cls(graph, index, doc_type)
+    def _iter_doc_types(self, doc_type=None, doc_types=()):
+        if doc_type:
+            yield doc_type
+        yield from doc_types

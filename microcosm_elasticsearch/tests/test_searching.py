@@ -3,11 +3,10 @@ Test Elasticsearch searching.
 
 """
 from hamcrest import (
-    all_of,
     assert_that,
     contains,
     equal_to,
-    has_property,
+    has_properties,
     is_,
 )
 from microcosm.api import create_object_graph
@@ -50,10 +49,10 @@ class TestIndexSearch:
         assert_that(
             self.search_index.search(),
             contains(
-                all_of(
-                    has_property("id", self.kevin.id),
-                    has_property("first", "Kevin"),
-                    has_property("last", "Durant"),
+                has_properties(
+                    id=self.kevin.id,
+                    first="Kevin",
+                    last="Durant",
                 ),
             ),
         )
@@ -65,10 +64,10 @@ class TestIndexSearch:
         with self.player_store.flushing():
             self.player_store.create(self.steph)
 
-        index = PersonSearchIndex.for_only(self.graph, self.graph.example_index, Player)
+        index = PersonSearchIndex(self.graph, self.graph.example_index, Player)
 
         assert_that(
-            index.count(),
+            index.count(doc_type="player"),
             is_(equal_to(1)),
         )
 
@@ -79,12 +78,14 @@ class TestIndexSearch:
         with self.player_store.flushing():
             self.player_store.create(self.steph)
 
-        index = PersonSearchIndex.for_only(self.graph, self.graph.example_index, Player)
+        index = PersonSearchIndex(self.graph, self.graph.example_index, Player)
 
         assert_that(
-            index.search(),
+            index.search(doc_type="player"),
             contains(
-                has_property("id", self.steph.id),
+                has_properties(
+                    id=self.steph.id,
+                ),
             ),
         )
 
@@ -95,15 +96,14 @@ class TestIndexSearch:
         """
         with self.person_store.flushing():
             self.person_store.create(self.kevin)
+
         assert_that(
             self.search_index.search(explain=True),
             contains(
-                has_property(
-                    "meta",
-                    has_property(
-                        "explanation",
-                        has_property(
-                            "value", 0.0
+                has_properties(
+                    meta=has_properties(
+                        explanation=has_properties(
+                            value=1.0,
                         ),
                     ),
                 ),

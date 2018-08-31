@@ -2,10 +2,10 @@
 Base classes for models
 
 """
-from elasticsearch_dsl import Date, DocType, Keyword
+from elasticsearch_dsl import Date, Document, Keyword
 
 
-class Model(DocType):
+class Model(Document):
     """
     Base for all models. Any model instance has a primary key and created/updated timestamps,
     as well as a field indicating the doctype.
@@ -13,11 +13,6 @@ class Model(DocType):
     See README#polymorphic-models for more details
 
     """
-    # By default when creating a document from a `Model` subclass instance
-    # Its `"doctype"` field will be set to the lowercased subclass name
-    # To override this declare:
-    # __doctype_name__ = "<other name>"
-
     # Every persistent entity should have a primary key id and created/updated timestamps.
     id = Keyword(required=True)
     created_at = Date(required=True)
@@ -52,3 +47,35 @@ class Model(DocType):
 
     def __hash__(self):
         return id(self) if self.id is None else hash(self.id)
+
+    @property
+    def _id(self):
+        return self.meta.id
+
+    @_id.setter
+    def _id(self, value):
+        self.meta.id = value
+
+    @property
+    def _index(self):
+        return self.meta.index
+
+    @_index.setter
+    def _index(self, value):
+        self.meta.index = value
+
+    @property
+    def _score(self):
+        return self.meta.score
+
+    @_score.setter
+    def _score(self, value):
+        self.meta.score = value
+
+    @property
+    def _version(self):
+        return self.meta.version
+
+    @_version.setter
+    def _version(self, value):
+        self.meta.version = value
