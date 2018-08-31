@@ -24,7 +24,7 @@ class Store:
         """
         :param graph: the object graph
         :param index: the name of an index to use
-        :param model_class: a `elasticsearch_dsl.DocType` subclass to persist.
+        :param model_class: a `elasticsearch_dsl.Document` subclass to persist.
 
         """
         self.elasticsearch_client = graph.elasticsearch_client
@@ -179,35 +179,12 @@ class Store:
         :raises `ElasticsearchNotFoundError` if there is no existing model
 
         """
-        instance = self.model_class(
-            _id=identifier,
-        )
-        instance.delete(
+        self.model_class().delete(
+            id=identifier,
             index=self.index_name,
             using=self.elasticsearch_client,
         )
         return True
-
-    def _add_id_to_instance(self, instance):
-        """
-        Defines an ID for an instance if not previously defined
-
-        Set the internal _id equal to the instance ID
-
-        """
-        if instance.id is None:
-            instance.id = self.new_object_id()
-
-        instance._id = instance.id
-        return instance
-
-    def _add_op_type(self, instance, op_type):
-        """
-        Decorates an instance with a bulk operation type
-
-        """
-        instance["_op_type"] = op_type
-        return instance
 
     def _batch_bulk(self, actions, batch_size):
         """
@@ -229,14 +206,24 @@ class Store:
         All errors and exceptions are suppressed and are returned in the response report
 
         """
-        actions = [
-            self._add_op_type(
-                instance=self._add_id_to_instance(instance).to_dict(True),
-                op_type=action,
-            )
-            for action, instance in actions
-        ]
+        def to_dict(instance, op_type):
+            if instance.id is None:
+                instance.id = self.new_object_id()
 
+            instance._id = instance.id
+            instance._index = self.index_name
+
+            record = instance.to_dict(include_meta=True)
+            if op_type == "delete":
+                del record["_source"]
+
+            record["_op_type"] = op_type
+            return record
+
+        actions = [
+            to_dict(instance, op_type)
+            for op_type, instance in actions
+        ]
         return [
             bulk(
                 client=self.elasticsearch_client,

@@ -61,31 +61,35 @@ def awsv4sign(r, *, session, region):
 def configure_elasticsearch_client(graph):
     """
     Configure Elasticsearch client using a constructed dictionary config.
+
     :returns: an Elasticsearch client instance of the configured name
+
     """
     if graph.config.elasticsearch_client.use_aws4auth:
         region = graph.config.elasticsearch_client.aws_region
-        awsauth = partial(awsv4sign,
-                          session=Session(),
-                          region=region)
+        awsauth = partial(
+            awsv4sign,
+            session=Session(),
+            region=region,
+        )
         config = dict(
-                      hosts=[{
-                          "host": graph.config.elasticsearch_client.host,
-                          "port": 443,
-                      }],
-                      connection_class=RequestsHttpConnection,
-                      http_auth=awsauth,
-                      use_ssl=True,
-                      verify_certs=True,
-                  )
+            hosts=[{
+                "host": graph.config.elasticsearch_client.host,
+                "port": 443,
+            }],
+            connection_class=RequestsHttpConnection,
+            http_auth=awsauth,
+            use_ssl=True,
+            verify_certs=True,
+        )
     else:
         config = dict(
-                      hosts=[
-                          graph.config.elasticsearch_client.host,
-                      ],
-                      http_auth=(
-                          graph.config.elasticsearch_client.username,
-                          graph.config.elasticsearch_client.password,
-                      ),
-                  )
+            hosts=[
+                graph.config.elasticsearch_client.host,
+            ],
+            http_auth=(
+                graph.config.elasticsearch_client.username,
+                graph.config.elasticsearch_client.password,
+            ),
+        )
     return Elasticsearch(**config)
