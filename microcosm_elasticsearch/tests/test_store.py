@@ -3,6 +3,8 @@ Test Elasticsearch persistence.
 
 """
 from datetime import timedelta
+from unittest.mock import patch
+
 from hamcrest import (
     all_of,
     assert_that,
@@ -17,7 +19,6 @@ from hamcrest import (
     raises,
 )
 from microcosm.api import create_object_graph
-from mock import patch
 from nose.plugins.attrib import attr
 
 
