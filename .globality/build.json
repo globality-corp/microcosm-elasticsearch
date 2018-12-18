@@ -1,8 +1,9 @@
 {
-  "type": "python-library",
   "params": {
-    "name": "microcosm-elasticsearch",
     "app_name": "example",
-    "database": "elasticsearch"
-  }
+    "database": "elasticsearch",
+    "name": "microcosm-elasticsearch"
+  },
+  "type": "python-library",
+  "version": "2.0.36"
 }
