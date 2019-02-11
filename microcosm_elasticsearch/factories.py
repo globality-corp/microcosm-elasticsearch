@@ -3,12 +3,12 @@ Factory that configures Elasticsearch client.
 
 """
 from functools import partial
-from urllib.parse import urlparse, urlencode, parse_qs
 from os import environ
+from urllib.parse import parse_qs, urlencode, urlparse
 
+from boto3 import Session
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
-from boto3 import Session
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from microcosm.api import defaults
 from microcosm.config.types import boolean
@@ -57,6 +57,7 @@ def awsv4sign(r, *, session, region):
     username="elastic",
     password="changeme",
     use_aws4auth=typed(boolean, default_value=False),
+    timeout_seconds=10,
 )
 def configure_elasticsearch_client(graph):
     """
@@ -81,6 +82,7 @@ def configure_elasticsearch_client(graph):
             http_auth=awsauth,
             use_ssl=True,
             verify_certs=True,
+            timeout=graph.config.elasticsearch_client.timeout_seconds,
         )
     else:
         config = dict(
