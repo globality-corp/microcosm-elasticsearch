@@ -57,7 +57,7 @@ def awsv4sign(r, *, session, region):
     username="elastic",
     password="changeme",
     use_aws4auth=typed(boolean, default_value=False),
-    timeout_seconds=10,
+    timeout_seconds=typed(int, 10),
 )
 def configure_elasticsearch_client(graph):
     """
