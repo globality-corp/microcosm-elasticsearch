@@ -24,7 +24,7 @@ setup(
         "microcosm-flask>=1.13.1",
         "microcosm-metrics>=2.1.0",
         "requests[security]>=2.18.4",
-        "urllib3==1.24.2",
+        "urllib3<1.25",
     ],
     setup_requires=[
         "nose>=1.3.6",
