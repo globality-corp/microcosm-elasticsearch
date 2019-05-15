@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from setuptools import find_packages, setup
 
-project = "microcosm-elasticsearch"
+
 version = "6.1.4"
 
 setup(
