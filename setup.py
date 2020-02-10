@@ -22,7 +22,7 @@ setup(
         "elasticsearch>=6.3.1,<7.0.0",
         "elasticsearch-dsl>=6.2.1,<7.0.0",
         "microcosm>=2.12.0",
-        "microcosm-flask>=2.8.0",
+        "microcosm-flask==2.10.0",
         "microcosm-metrics>=2.1.0",
         "requests[security]>=2.18.4",
         "urllib3<1.25",
