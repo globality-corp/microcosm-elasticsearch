@@ -105,7 +105,6 @@ class Store:
         self.elasticsearch_client.create(
             id=instance.id,
             index=self.index_name,
-            doc_type=self.doc_type,
             body=instance.to_dict(),
         )
         return instance
