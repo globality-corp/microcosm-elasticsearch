@@ -21,11 +21,6 @@ class SearchIndex:
      -  It can restrict the search to specific document types.
 
     """
-    __mapping_type_name__ = "doc"
-
-    @property
-    def mapping_type_name(self):
-        return self.__class__.__mapping_type_name__
 
     @property
     def doc_type_field(self):
@@ -46,7 +41,7 @@ class SearchIndex:
         self.index = index
         # Mapping from ES custom type field to corresponding model class
         self.doc_types = dict()
-        self.mapping = Mapping(self.mapping_type_name)
+        self.mapping = Mapping()
         if doc_type is not None:
             self.register_doc_type(doc_type)
 
