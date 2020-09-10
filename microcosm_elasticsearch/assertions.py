@@ -20,7 +20,7 @@ DEFAULT_SLEEP_SECONDS = 0.1
 
 def assert_that_eventually(func, matches, tries=DEFAULT_TRIES, sleep_seconds=DEFAULT_SLEEP_SECONDS):
     last_error = None
-    for _ in range(3):
+    for _ in range(tries):
         try:
             assert_that(func(), matches)
             break

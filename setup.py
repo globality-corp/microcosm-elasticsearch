@@ -19,8 +19,8 @@ setup(
     keywords="microcosm",
     install_requires=[
         "boto3>=1.7.33",
-        "elasticsearch>=6.3.1,<7.0.0",
-        "elasticsearch-dsl>=6.2.1,<7.0.0",
+        "elasticsearch>=7.0.0",
+        "elasticsearch-dsl>=7.0.0",
         "microcosm>=2.12.0",
         "microcosm-flask>=2.8.0",
         "microcosm-metrics>=2.1.0",
