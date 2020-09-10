@@ -84,8 +84,8 @@ jobs:
       - run:
           name: pull and run Elasticsearch
           command: |
-            docker pull docker.elastic.co/elasticsearch/elasticsearch:5.3.1
-            docker run -d --name elasticsearch -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -p 9200:9200 -e bootstrap.memory_lock=true -e cluster.name=docker -e http.host=0.0.0.0 -e transport.host=127.0.0.1 docker.elastic.co/elasticsearch/elasticsearch:5.3.1
+            docker pull docker.elastic.co/elasticsearch/elasticsearch:7.7.1
+            docker run -d --name elasticsearch -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -p 9200:9200 -e bootstrap.memory_lock=true -e cluster.name=docker -e http.host=0.0.0.0 -e transport.host=127.0.0.1 docker.elastic.co/elasticsearch/elasticsearch:7.7.1
       - run:
           name: Test code
           command: |
