@@ -56,6 +56,11 @@ class Store:
         """
         yield
         self.index.flush()
+        # NB. as of ES7 a flush does not have the side-effect of refresh.
+        # Given that our use of explicit flush in code typically is done for refreshing
+        # available documents to be visible to the search engine, we also invoke refresh below.
+        # See: https://qbox.io/blog/refresh-flush-operations-elasticsearch-guide
+        self.index.refresh()
 
     def new_object_id(self):
         """

@@ -78,6 +78,7 @@ class SearchIndex:
         """
         query = self._search(**kwargs)
         results = query.execute()
+
         return self._to_list(results)
 
     def search_with_count(self, **kwargs):
@@ -90,6 +91,7 @@ class SearchIndex:
         """
         query = self._search(**kwargs)
         results = query.execute()
+
         return self._to_list(results), query.count()
 
     def _search(self, explain=False, **kwargs):
