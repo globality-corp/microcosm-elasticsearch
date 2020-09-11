@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 
 project = "microcosm-elasticsearch"
-version = "7.0.0"
+version = "7.0.1"
 
 setup(
     name=project,
@@ -25,7 +25,7 @@ setup(
         "microcosm-flask>=2.8.0",
         "microcosm-metrics>=2.1.0",
         "requests[security]>=2.18.4",
-        "urllib3<1.25",
+        "urllib3>=1.25.10",
     ],
     setup_requires=[
         "nose>=1.3.6",
