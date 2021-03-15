@@ -85,7 +85,7 @@ class TestStore:
         self.store.create(self.kevin)
         self.store.create(self.steph)
         assert_that_eventually(
-            calling(self.store.count),
+            self.store.count,
             is_(equal_to(2)),
             tries=5,
             sleep_seconds=0.5,
@@ -141,7 +141,7 @@ class TestStore:
     def test_search_slow(self):
         self.store.create(self.kevin)
         assert_that_eventually(
-            calling(self.store.search),
+            self.store.search,
             contains(
                 all_of(
                     has_property("id", self.kevin.id),
