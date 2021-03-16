@@ -19,7 +19,7 @@ class Model(Document):
     updated_at = Date(required=True)
 
     # In ES6+ indices have a single mapping type
-    # To allow for polymorphic documents, we define a custom field holding the document type.
+    # To allow for polymorphic documents, we define a field holding the document type
     doctype = Keyword(required=True)
 
     def __init__(self, meta=None, **kwargs):
