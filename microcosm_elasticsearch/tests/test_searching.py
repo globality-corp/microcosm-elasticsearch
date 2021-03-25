@@ -11,7 +11,7 @@ from hamcrest import (
 )
 from microcosm.api import create_object_graph
 
-from microcosm_elasticsearch.tests.fixtures import Person, Player, PersonSearchIndex
+from microcosm_elasticsearch.tests.fixtures import Person, PersonSearchIndex, Player
 
 
 class TestIndexSearch:
