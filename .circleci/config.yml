@@ -119,7 +119,7 @@ jobs:
       - run:
           name: Wait for Elasticsearch to be running
           command: |
-            while (( $(docker inspect --format='{{.State.Status}}' elasticsearch) == "running" )); do
+            while (( $(docker inspect --format='{{.State.Status}}' elasticsearch) != "running" )); do
               sleep 1
             done
 
