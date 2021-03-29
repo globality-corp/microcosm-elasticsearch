@@ -117,18 +117,9 @@ jobs:
             docker cp $(pwd)/microcosm_elasticsearch/tests service_tests:/src/microcosm_elasticsearch/
 
       - run:
-          name: Wait for Elasticsearch to be running
-          command: |
-            while (( $(docker inspect --format='{{.State.Status}}' elasticsearch) != "running" )); do
-              sleep 1
-            done
-
-      - run:
           name: Run Test
           command: |
             docker run -it  --link elasticsearch:elasticsearch -e EXAMPLE__ELASTICSEARCH_CLIENT__HOST=elasticsearch --volumes-from service_tests ${AWS_ECR_DOMAIN}/python-library:${CIRCLE_SHA1} test
-
-
 
 
   lint:
