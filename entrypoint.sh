@@ -22,14 +22,6 @@ if [ "$1" = "test" ]; then
    # Install standard test dependencies; YMMV
    pip --quiet install \
        .[test] nose PyHamcrest coverage
-
-   apt-get install -y netcat
-   echo "Waiting elasticseach to start on 9200..."
-   while ! netcat -z elasticsearch 9200; do
-     sleep 1
-   done
-   echo "Elasticsearch launched"
-
    exec nosetests
 elif [ "$1" = "lint" ]; then
    # Install standard linting dependencies; YMMV
