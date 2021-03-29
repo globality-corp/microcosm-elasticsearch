@@ -20,6 +20,7 @@
 
 if [ "$1" = "test" ]; then
    # Install standard test dependencies; YMMV
+   curl www.google.com
    pip --quiet install \
        .[test] nose PyHamcrest coverage
    exec nosetests
