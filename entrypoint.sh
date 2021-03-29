@@ -20,9 +20,17 @@
 
 if [ "$1" = "test" ]; then
    # Install standard test dependencies; YMMV
-   curl www.google.com
    pip --quiet install \
        .[test] nose PyHamcrest coverage
+
+   apt-get update && apt-get install netcat -y
+   echo "Waiting elasticseach to start on 9200..."
+   while ! netcat -z elasticsearch 9200; do
+     echo "Elastic search not up, sleeping for 1s"
+     sleep 1
+   done
+   echo "Elasticsearch launched"
+
    exec nosetests
 elif [ "$1" = "lint" ]; then
    # Install standard linting dependencies; YMMV
