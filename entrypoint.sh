@@ -24,7 +24,8 @@ if [ "$1" = "test" ]; then
        .[test] nose PyHamcrest coverage
 
    echo "Waiting elasticseach to start on 9200..."
-   while ! nc -z elasticsearch 9200; do
+   cat /etc/*release
+   while ! netcat -z elasticsearch 9200; do
      sleep 1
    done
    echo "Elasticsearch launched"
