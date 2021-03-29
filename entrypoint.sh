@@ -23,7 +23,7 @@ if [ "$1" = "test" ]; then
    pip --quiet install \
        .[test] nose PyHamcrest coverage
 
-   apt install -y netcat
+   apt-get install -y netcat
    echo "Waiting elasticseach to start on 9200..."
    while ! netcat -z elasticsearch 9200; do
      sleep 1
