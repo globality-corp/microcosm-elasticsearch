@@ -7,11 +7,10 @@ from enum import Enum
 from elasticsearch_dsl import Keyword, Q, Text
 from microcosm.api import binding
 
+from microcosm_elasticsearch.fields import EnumField
 from microcosm_elasticsearch.models import Model
 from microcosm_elasticsearch.searching import SearchIndex
 from microcosm_elasticsearch.store import Store
-
-from microcosm_elasticsearch.fields import EnumField
 
 
 class Planet(Enum):
