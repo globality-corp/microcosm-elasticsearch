@@ -2,7 +2,7 @@
 Index Status resources.
 
 """
-from marshmallow import fields, Schema
+from marshmallow import Schema, fields
 
 
 class IndexStatusSchema(Schema):

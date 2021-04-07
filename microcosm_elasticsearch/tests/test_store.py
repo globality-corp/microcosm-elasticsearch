@@ -11,9 +11,9 @@ from hamcrest import (
     calling,
     contains,
     equal_to,
-    has_property,
-    has_key,
     has_entry,
+    has_key,
+    has_property,
     is_,
     none,
     raises,
@@ -21,12 +21,8 @@ from hamcrest import (
 from microcosm.api import create_object_graph
 from nose.plugins.attrib import attr
 
-
 from microcosm_elasticsearch.assertions import assert_that_eventually, assert_that_not_eventually
-from microcosm_elasticsearch.errors import (
-    ElasticsearchConflictError,
-    ElasticsearchNotFoundError,
-)
+from microcosm_elasticsearch.errors import ElasticsearchConflictError, ElasticsearchNotFoundError
 from microcosm_elasticsearch.tests.fixtures import Person, Planet
 
 

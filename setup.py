@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 
 project = "microcosm-elasticsearch"
-version = "7.0.1"
+version = "7.1.0"
 
 setup(
     name=project,
