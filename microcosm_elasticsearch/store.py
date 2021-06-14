@@ -10,6 +10,7 @@ Intended to be duck-type compatible with `microcosm_postgres.store.Store`.
 from contextlib import contextmanager
 from time import time
 from uuid import uuid4
+
 from elasticsearch.helpers import bulk
 
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors

@@ -2,13 +2,12 @@
 Test error translation.
 
 """
+from elasticsearch.exceptions import ConflictError, NotFoundError, RequestError
 from hamcrest import assert_that, calling, raises
 
-from elasticsearch.exceptions import ConflictError, NotFoundError, RequestError
-
 from microcosm_elasticsearch.errors import (
-    ElasticsearchError,
     ElasticsearchConflictError,
+    ElasticsearchError,
     ElasticsearchNotFoundError,
     translate_elasticsearch_errors,
 )

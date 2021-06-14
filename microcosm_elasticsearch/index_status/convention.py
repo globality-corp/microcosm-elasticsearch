@@ -3,14 +3,12 @@ Index Status convention.
 
 """
 from marshmallow import Schema
-
 from microcosm_flask.conventions.base import EndpointDefinition
 from microcosm_flask.conventions.crud import configure_crud
-from microcosm_flask.operations import Operation
 from microcosm_flask.namespaces import Namespace
-from microcosm_elasticsearch.index_status.resources import (
-    IndexStatusSchema,
-)
+from microcosm_flask.operations import Operation
+
+from microcosm_elasticsearch.index_status.resources import IndexStatusSchema
 from microcosm_elasticsearch.index_status.store import IndexStatusStore
 
 

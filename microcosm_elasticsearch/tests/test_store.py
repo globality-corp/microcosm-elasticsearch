@@ -11,9 +11,9 @@ from hamcrest import (
     calling,
     contains,
     equal_to,
-    has_property,
-    has_key,
     has_entry,
+    has_key,
+    has_property,
     is_,
     none,
     raises,
@@ -21,12 +21,8 @@ from hamcrest import (
 from microcosm.api import create_object_graph
 from nose.plugins.attrib import attr
 
-
 from microcosm_elasticsearch.assertions import assert_that_eventually, assert_that_not_eventually
-from microcosm_elasticsearch.errors import (
-    ElasticsearchConflictError,
-    ElasticsearchNotFoundError,
-)
+from microcosm_elasticsearch.errors import ElasticsearchConflictError, ElasticsearchNotFoundError
 from microcosm_elasticsearch.tests.fixtures import Person, Planet
 
 
@@ -85,7 +81,7 @@ class TestStore:
         self.store.create(self.kevin)
         self.store.create(self.steph)
         assert_that_eventually(
-            calling(self.store.count),
+            self.store.count,
             is_(equal_to(2)),
             tries=5,
             sleep_seconds=0.5,
@@ -141,7 +137,7 @@ class TestStore:
     def test_search_slow(self):
         self.store.create(self.kevin)
         assert_that_eventually(
-            calling(self.store.search),
+            self.store.search,
             contains(
                 all_of(
                     has_property("id", self.kevin.id),

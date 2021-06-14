@@ -1,4 +1,5 @@
 from enum import Enum
+
 from elasticsearch_dsl import Keyword
 from elasticsearch_dsl.exceptions import ValidationException
 
