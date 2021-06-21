@@ -44,23 +44,23 @@ class Store:
 
     @property
     def index_name(self):
-        # Deprecated - use get_index_name instead()
+        # Deprecated - use get_index_name() instead
         return self.index._name
 
-    def get_index_name(self):
-        return self.index._name
+    def get_index_name(self, **kwargs):
+        return self.get_index(**kwargs)._name
 
     def get_search_index(self, **kwargs):
         """
-            Allows for search index to be dynamically generated
-            by those subclassing this class.
+            Allows for search index to be dynamically selected
+            by subclasses
         """
         return self.search_index
 
     def get_index(self, **kwargs):
         """
-            Allows for search index to be dynamically generated
-            by those subclassing this class.
+            Allows for index to be dynamically selected
+            by subclasses
         """
         return self.index
 
@@ -99,14 +99,17 @@ class Store:
         return int(time() * 1000)
 
     def count(self, **kwargs):
+        # delegate
         search_index = self.get_search_index(**kwargs)
         return search_index.count(**kwargs)
 
     def search(self, **kwargs):
+        # delegate
         search_index = self.get_search_index(**kwargs)
         return search_index.search(**kwargs)
 
     def search_with_count(self, **kwargs):
+        # delegate
         search_index = self.get_search_index(**kwargs)
         return search_index.search_with_count(**kwargs)
 

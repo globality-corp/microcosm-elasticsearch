@@ -23,7 +23,7 @@ from nose.plugins.attrib import attr
 
 from microcosm_elasticsearch.assertions import assert_that_eventually, assert_that_not_eventually
 from microcosm_elasticsearch.errors import ElasticsearchConflictError, ElasticsearchNotFoundError
-from microcosm_elasticsearch.tests.fixtures import Person, Planet
+from microcosm_elasticsearch.tests.fixtures import Person, Planet, SelectorAttribute
 
 
 class TestStore:
@@ -31,6 +31,8 @@ class TestStore:
     def setup(self):
         self.graph = create_object_graph("example", testing=True)
         self.store = self.graph.person_store
+        self.overloaded_store = self.graph.person_overloaded_store
+
         self.graph.elasticsearch_index_registry.createall(force=True)
 
         self.kevin = Person(
@@ -41,6 +43,17 @@ class TestStore:
         self.steph = Person(
             first="Steph",
             last="Curry",
+            origin_planet=Planet.MARS,
+        )
+
+        self.person_in_one = Person(
+            first="One",
+            last="Person",
+            origin_planet=Planet.MARS,
+        )
+        self.person_in_two = Person(
+            first="Two",
+            last="Person",
             origin_planet=Planet.MARS,
         )
 
@@ -173,12 +186,9 @@ class TestStore:
                 mocked.return_value = self.kevin.created_at + timedelta(seconds=1).seconds * 1000
                 self.store.create(self.steph)
 
-        assert_that(
-            self.store.search(offset=1, limit=1),
-            contains(
-                has_property("id", self.kevin.id),
-            ),
-        )
+        result = self.store.search(offset=1, limit=1)
+        assert_that(result, contains(has_property("id", self.kevin.id)))
+
         assert_that(
             self.store.search(offset=0, limit=1),
             contains(
@@ -313,3 +323,24 @@ class TestStore:
             has_key('delete'),
         ))
         assert_that(result[1][0]['delete'], has_entry('result', 'not_found'))
+
+    def test_overloaded_store(self):
+        with self.overloaded_store.flushing(selector_attribute=SelectorAttribute.ONE):
+            self.overloaded_store.create(
+                self.person_in_one,
+                selector_attribute=SelectorAttribute.ONE
+            )
+
+        with self.overloaded_store.flushing(selector_attribute=SelectorAttribute.TWO):
+            self.overloaded_store.create(
+                self.person_in_two,
+                selector_attribute=SelectorAttribute.TWO
+            )
+
+        result, count = self.overloaded_store.search_with_count(selector_attribute=SelectorAttribute.ONE)
+        assert_that(result[0], has_property("id", self.person_in_one.id))
+        assert_that(count, is_(equal_to(1)))
+
+        result, count = self.overloaded_store.search_with_count(selector_attribute=SelectorAttribute.TWO)
+        assert_that(result[0], has_property("id", self.person_in_two.id))
+        assert_that(count, is_(equal_to(1)))
