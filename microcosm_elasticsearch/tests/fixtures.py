@@ -12,9 +12,11 @@ from microcosm_elasticsearch.models import Model
 from microcosm_elasticsearch.searching import SearchIndex
 from microcosm_elasticsearch.store import Store
 
+
 class SelectorAttribute(Enum):
     ONE = auto()
     TWO = auto()
+
 
 class Planet(Enum):
     EARTH = "EARTH"
@@ -28,9 +30,11 @@ class Planet(Enum):
 def create_example_index(graph):
     return graph.elasticsearch_index_registry.register(version="v1")
 
+
 @binding("first_attribute_index")
 def create_first_index(graph):
     return graph.elasticsearch_index_registry.register(version="v1", name="first-attribute")
+
 
 class Person(Model):
     first = Text(required=True)
@@ -87,14 +91,16 @@ def create_first_attribute_search_index(graph):
         index=graph.first_attribute_index
     )
 
+
 @binding("person_overloaded_store")
 class PersonOverloadedStore(Store):
     def __init__(self, graph):
-        super(PersonOverloadedStore, self).__init__(graph, graph.first_attribute_index, Person, graph.first_attribute_search_index)
+        super(PersonOverloadedStore, self).__init__(
+            graph, graph.first_attribute_index, Person, graph.first_attribute_search_index)
         self.first_attribute_index = graph.first_attribute_index
         self.first_attribute_search_index = graph.first_attribute_search_index
 
-        self.second_attribute_index =  graph.elasticsearch_index_registry.register(
+        self.second_attribute_index = graph.elasticsearch_index_registry.register(
             version="v1",
             name="second-attribute"
         )
@@ -103,19 +109,26 @@ class PersonOverloadedStore(Store):
             index=self.second_attribute_index
         )
 
-    def get_index(self, selector_attribute: SelectorAttribute, **kwargs):
-        if(selector_attribute == SelectorAttribute.ONE):
+    def get_index(
+            self,
+            selector_attribute: SelectorAttribute = SelectorAttribute.ONE,
+            **kwargs
+    ):
+        if selector_attribute == SelectorAttribute.ONE:
             return self.first_attribute_index
-        elif(selector_attribute == SelectorAttribute.TWO):
+        elif selector_attribute == SelectorAttribute.TWO:
             return self.second_attribute_index
         else:
             raise Exception("Index not found")
 
-
-    def get_search_index(self, selector_attribute: SelectorAttribute, **kwargs):
-        if(selector_attribute == SelectorAttribute.ONE):
+    def get_search_index(
+            self,
+            selector_attribute: SelectorAttribute = SelectorAttribute.ONE,
+            **kwargs
+    ):
+        if selector_attribute == SelectorAttribute.ONE:
             return self.first_attribute_search_index
-        elif(selector_attribute == SelectorAttribute.TWO):
+        elif selector_attribute == SelectorAttribute.TWO:
             return self.second_attribute_search_index
         else:
             raise Exception("Index not found")
