@@ -32,7 +32,6 @@ class TestStore:
         self.graph = create_object_graph("example", testing=True)
         self.store = self.graph.person_store
         self.overloaded_store = self.graph.person_overloaded_store
-
         self.graph.elasticsearch_index_registry.createall(force=True)
 
         self.kevin = Person(
@@ -186,9 +185,12 @@ class TestStore:
                 mocked.return_value = self.kevin.created_at + timedelta(seconds=1).seconds * 1000
                 self.store.create(self.steph)
 
-        result = self.store.search(offset=1, limit=1)
-        assert_that(result, contains(has_property("id", self.kevin.id)))
-
+        assert_that(
+            self.store.search(offset=1, limit=1),
+            contains(
+                has_property("id", self.kevin.id),
+            ),
+        )
         assert_that(
             self.store.search(offset=0, limit=1),
             contains(

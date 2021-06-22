@@ -61,7 +61,7 @@ class PersonSearchIndex(SearchIndex):
                     ],
                 )
             )
-        return super(PersonSearchIndex, self)._filter(query, **kwargs)
+        return super(self)._filter(query, **kwargs)
 
 
 @binding("example_search_index")
@@ -75,13 +75,13 @@ def create_example_search_index(graph):
 @binding("person_store")
 class PersonStore(Store):
     def __init__(self, graph):
-        super(PersonStore, self).__init__(graph, graph.example_index, Person, graph.example_search_index)
+        super(self).__init__(graph, graph.example_index, Person, graph.example_search_index)
 
 
 @binding("player_store")
 class PlayerStore(Store):
     def __init__(self, graph):
-        super(PlayerStore, self).__init__(graph, graph.example_index, Player, graph.example_search_index)
+        super(self).__init__(graph, graph.example_index, Player, graph.example_search_index)
 
 
 @binding("first_attribute_search_index")
@@ -95,7 +95,7 @@ def create_first_attribute_search_index(graph):
 @binding("person_overloaded_store")
 class PersonOverloadedStore(Store):
     def __init__(self, graph):
-        super(PersonOverloadedStore, self).__init__(
+        super(self).__init__(
             graph, graph.first_attribute_index, Person, graph.first_attribute_search_index)
         self.first_attribute_index = graph.first_attribute_index
         self.first_attribute_search_index = graph.first_attribute_search_index
