@@ -31,7 +31,6 @@ class TestStore:
     def setup(self):
         self.graph = create_object_graph("example", testing=True)
         self.store = self.graph.person_store
-        self.overloaded_store = self.graph.person_overloaded_store
         self.graph.elasticsearch_index_registry.createall(force=True)
 
         self.kevin = Person(
@@ -42,17 +41,6 @@ class TestStore:
         self.steph = Person(
             first="Steph",
             last="Curry",
-            origin_planet=Planet.MARS,
-        )
-
-        self.person_in_one = Person(
-            first="One",
-            last="Person",
-            origin_planet=Planet.MARS,
-        )
-        self.person_in_two = Person(
-            first="Two",
-            last="Person",
             origin_planet=Planet.MARS,
         )
 
@@ -331,6 +319,19 @@ class TestOverloadedStore(TestStore):
 
     def setup(self):
         super().setup()
+        self.overloaded_store = self.graph.person_overloaded_store
+
+        self.person_in_one = Person(
+            first="One",
+            last="Person",
+            origin_planet=Planet.MARS,
+        )
+        self.person_in_two = Person(
+            first="Two",
+            last="Person",
+            origin_planet=Planet.MARS,
+        )
+
         with self.overloaded_store.flushing(selector_attribute=SelectorAttribute.ONE):
             self.overloaded_store.create(
                 self.person_in_one,
