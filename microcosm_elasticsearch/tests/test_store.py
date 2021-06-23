@@ -326,7 +326,11 @@ class TestStore:
         ))
         assert_that(result[1][0]['delete'], has_entry('result', 'not_found'))
 
-    def test_overloaded_store(self):
+
+class TestOverloadedStore(TestStore):
+
+    def setup(self):
+        super().setup()
         with self.overloaded_store.flushing(selector_attribute=SelectorAttribute.ONE):
             self.overloaded_store.create(
                 self.person_in_one,
@@ -339,6 +343,7 @@ class TestStore:
                 selector_attribute=SelectorAttribute.TWO
             )
 
+    def test_search_with_count(self):
         result, count = self.overloaded_store.search_with_count(selector_attribute=SelectorAttribute.ONE)
         assert_that(result[0], has_property("id", self.person_in_one.id))
         assert_that(count, is_(equal_to(1)))
@@ -346,3 +351,24 @@ class TestStore:
         result, count = self.overloaded_store.search_with_count(selector_attribute=SelectorAttribute.TWO)
         assert_that(result[0], has_property("id", self.person_in_two.id))
         assert_that(count, is_(equal_to(1)))
+
+    def test_search(self):
+        assert_that(
+            self.overloaded_store.search(selector_attribute=SelectorAttribute.ONE),
+            contains(
+                all_of(
+                    has_property("id", self.person_in_one.id),
+                    has_property("first", "One"),
+                ),
+            ),
+        )
+
+        assert_that(
+            self.overloaded_store.search(selector_attribute=SelectorAttribute.TWO),
+            contains(
+                all_of(
+                    has_property("id", self.person_in_two.id),
+                    has_property("first", "Two"),
+                ),
+            ),
+        )
