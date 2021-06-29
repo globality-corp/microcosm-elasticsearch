@@ -44,10 +44,28 @@ class Store:
 
     @property
     def index_name(self):
+        # Deprecated - use get_index_name() instead
         return self.index._name
 
+    def get_index_name(self, **kwargs):
+        return self.get_index(**kwargs)._name
+
+    def get_search_index(self, **kwargs):
+        """
+            Allows for search index to be dynamically selected
+            by subclasses
+        """
+        return self.search_index
+
+    def get_index(self, **kwargs):
+        """
+            Allows for index to be dynamically selected
+            by subclasses
+        """
+        return self.index
+
     @contextmanager
-    def flushing(self):
+    def flushing(self, **kwargs):
         """
         Flush the current session if there's no error.
 
@@ -56,12 +74,12 @@ class Store:
 
         """
         yield
-        self.index.flush()
+        self.get_index(**kwargs).flush()
         # NB. as of ES7 a flush does not have the side-effect of refresh.
         # Given that our use of explicit flush in code typically is done for refreshing
         # available documents to be visible to the search engine, we also invoke refresh below.
         # See: https://qbox.io/blog/refresh-flush-operations-elasticsearch-guide
-        self.index.refresh()
+        self.get_index(**kwargs).refresh()
 
     def new_object_id(self):
         """
@@ -82,18 +100,21 @@ class Store:
 
     def count(self, **kwargs):
         # delegate
-        return self.search_index.count(**kwargs)
+        search_index = self.get_search_index(**kwargs)
+        return search_index.count(**kwargs)
 
     def search(self, **kwargs):
         # delegate
-        return self.search_index.search(**kwargs)
+        search_index = self.get_search_index(**kwargs)
+        return search_index.search(**kwargs)
 
     def search_with_count(self, **kwargs):
         # delegate
-        return self.search_index.search_with_count(**kwargs)
+        search_index = self.get_search_index(**kwargs)
+        return search_index.search_with_count(**kwargs)
 
     @translate_elasticsearch_errors
-    def create(self, instance):
+    def create(self, instance, **kwargs):
         """
         Persist an entity into Elasticsearch.
 
@@ -110,13 +131,13 @@ class Store:
         # NB: the DSL save function will overwrite existing records; use the raw client
         self.elasticsearch_client.create(
             id=instance.id,
-            index=self.index_name,
+            index=self.get_index_name(**kwargs),
             body=instance.to_dict(),
         )
         return instance
 
     @translate_elasticsearch_errors
-    def retrieve(self, identifier):
+    def retrieve(self, identifier, **kwargs):
         """
         Retrieve a model by primary key and zero or more other criteria.
 
@@ -125,12 +146,12 @@ class Store:
         """
         return self.model_class.get(
             id=identifier,
-            index=self.index_name,
+            index=self.get_index_name(**kwargs),
             using=self.elasticsearch_client,
         )
 
     @translate_elasticsearch_errors
-    def update(self, identifier, new_instance):
+    def update(self, identifier, new_instance, **kwargs):
         """
         Update an existing model with a new one.
 
@@ -143,14 +164,14 @@ class Store:
 
         new_instance.update(
             using=self.elasticsearch_client,
-            index=self.index_name,
+            index=self.get_index_name(**kwargs),
             **new_instance.to_dict()
         )
 
         return self.retrieve(identifier)
 
     @translate_elasticsearch_errors
-    def replace(self, identifier, new_instance):
+    def replace(self, identifier, new_instance, **kwargs):
         """
         Create or update an entity.
 
@@ -171,13 +192,13 @@ class Store:
         new_instance.save(
             id=new_instance.id,
             using=self.elasticsearch_client,
-            index=self.index_name,
+            index=self.get_index_name(**kwargs),
             validate=True,
         )
         return new_instance
 
     @translate_elasticsearch_errors
-    def delete(self, identifier):
+    def delete(self, identifier, **kwargs):
         """
         Delete a model by primary key.
 
@@ -186,7 +207,7 @@ class Store:
         """
         self.model_class().delete(
             id=identifier,
-            index=self.index_name,
+            index=self.get_index_name(**kwargs),
             using=self.elasticsearch_client,
         )
         return True
@@ -201,7 +222,7 @@ class Store:
             yield actions[offset:min(offset + batch_size, num_actions)]
 
     @translate_elasticsearch_errors
-    def bulk(self, actions, batch_size):
+    def bulk(self, actions, batch_size, **kwargs):
         """
         Bulk index entities
 
@@ -216,7 +237,7 @@ class Store:
                 instance.id = self.new_object_id()
 
             instance._id = instance.id
-            instance._index = self.index_name
+            instance._index = self.get_index_name(**kwargs)
 
             record = instance.to_dict(include_meta=True)
             if op_type == "delete":
@@ -233,7 +254,7 @@ class Store:
             bulk(
                 client=self.elasticsearch_client,
                 actions=actions_batch,
-                index=self.index._name,
+                index=self.get_index(**kwargs)._name,
                 raise_on_exception=False,
                 raise_on_error=False,
             ) for actions_batch in self._batch_bulk(
