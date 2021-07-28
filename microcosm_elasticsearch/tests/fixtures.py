@@ -8,6 +8,7 @@ from elasticsearch_dsl import Keyword, Q, Text
 from microcosm.api import binding
 
 from microcosm_elasticsearch.fields import EnumField
+from microcosm_elasticsearch.mapping import create_mapping
 from microcosm_elasticsearch.models import Model
 from microcosm_elasticsearch.searching import SearchIndex
 from microcosm_elasticsearch.store import Store
@@ -28,12 +29,19 @@ class Planet(Enum):
 
 @binding("example_index")
 def create_example_index(graph):
-    return graph.elasticsearch_index_registry.register(version="v1")
+    return graph.elasticsearch_index_registry.register(
+        version="v1",
+        mapping=create_mapping(Person),
+    )
 
 
 @binding("first_attribute_index")
 def create_first_index(graph):
-    return graph.elasticsearch_index_registry.register(version="v1", name="first-attribute")
+    return graph.elasticsearch_index_registry.register(
+        version="v1",
+        name="first-attribute",
+        mapping=create_mapping(Person),
+    )
 
 
 class Person(Model):
@@ -102,7 +110,8 @@ class PersonOverloadedStore(Store):
 
         self.second_attribute_index = graph.elasticsearch_index_registry.register(
             version="v1",
-            name="second-attribute"
+            name="second-attribute",
+            mapping=create_mapping(Person),
         )
         self.second_attribute_search_index = SearchIndex(
             graph=graph,
