@@ -2,8 +2,6 @@
 Index search.
 
 """
-from elasticsearch_dsl.mapping import Mapping
-
 from microcosm_elasticsearch.errors import translate_elasticsearch_errors
 
 
@@ -41,18 +39,12 @@ class SearchIndex:
         self.index = index
         # Mapping from ES custom type field to corresponding model class
         self.doc_types = dict()
-        self.mapping = Mapping()
         if doc_type is not None:
             self.register_doc_type(doc_type)
 
     def register_doc_type(self, model_class):
         model_doctype = model_class.get_model_doctype()
         self.doc_types[model_doctype] = model_class
-        self.update_mapping(model_class)
-
-    def update_mapping(self, model_class):
-        self.mapping.update(model_class._doc_type.mapping)
-        self.index.mapping(self.mapping)
 
     @property
     def index_name(self):

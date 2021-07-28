@@ -16,7 +16,7 @@ class IndexRegistry:
         self.graph = graph
         self.indexes = {}
 
-    def register(self, name=None, version=None, settings=None):
+    def register(self, name=None, version=None, settings=None, mapping=None):
         """
         Register an index locally.
 
@@ -27,6 +27,8 @@ class IndexRegistry:
          -  The "test" suffix is added for unit testing (to avoid clobbering real data)
 
         If version is provided, it will be used to create generate an alias (to the unversioned name).
+
+        Registering `mapping` on the `index` if `mapping` argument provided.
 
         """
         if version is None:
@@ -47,6 +49,9 @@ class IndexRegistry:
 
         if settings:
             index.settings(**settings)
+
+        if mapping:
+            index.mapping(mapping)
 
         if alias_name is not None:
             index.aliases(**{alias_name: {}})
