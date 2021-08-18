@@ -23,7 +23,6 @@ defaults: &defaults
         EXTRA_INDEX_URL: "InjectedDuringRuntime"
         AWS_ECR_DOMAIN: "InjectedDuringRuntime"
         JFROG_AUTH: "InjectedDuringRuntime"
-        PYPI_AUTH_TOKEN: "InjectedDuringRuntime"
         PYPI_USERNAME: "InjectedDuringRuntime"
         PYPI_PASSWORD: "InjectedDuringRuntime"
 
@@ -38,7 +37,6 @@ deploy_defaults: &deploy_defaults
         EXTRA_INDEX_URL: "InjectedDuringRuntime"
         AWS_ECR_DOMAIN: "InjectedDuringRuntime"
         JFROG_AUTH: "InjectedDuringRuntime"
-        PYPI_AUTH_TOKEN: "InjectedDuringRuntime"
         PYPI_USERNAME: "InjectedDuringRuntime"
         PYPI_PASSWORD: "InjectedDuringRuntime"
 
