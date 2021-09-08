@@ -21,7 +21,7 @@ class Store:
     Elasticsearch persistence interface.
 
     """
-    def __init__(self, graph, index, model_class, search_index):
+    def __init__(self, graph, index, model_class, search_index=None):
         """
         :param graph: the object graph
         :param index: the name of an index to use
@@ -32,7 +32,9 @@ class Store:
         self.index = index
         self.model_class = model_class
 
-        search_index.register_doc_type(model_class)
+        if search_index:
+            search_index.register_doc_type(model_class)
+
         self.search_index = search_index
 
         # NB: do NOT provide a model backref here because "smart" shortcuts on the
@@ -55,6 +57,9 @@ class Store:
             Allows for search index to be dynamically selected
             by subclasses
         """
+        if not self.search_index:
+            raise Exception("'search_index' not registered")
+
         return self.search_index
 
     def get_index(self, **kwargs):
