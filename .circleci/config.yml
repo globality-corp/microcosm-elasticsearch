@@ -230,7 +230,7 @@ jobs:
             version=0.${CIRCLE_BUILD_NUM}.dev${CIRCLE_BUILD_NUM}
             python setup.py sdist bdist_wheel
             aws codeartifact login --tool twine --domain globality --repository globality-pypi-local --region us-east-1
-            twine upload --non-interactive --repository codeartifact dist/microcosm-flask-${version}.tar.gz --verbose
+            twine upload --non-interactive --repository codeartifact dist/microcosm-elasticsearch-${version}.tar.gz --verbose
       - run:
           name: Echo Success
           command: echo "Pushed to codeartifact successfully"
