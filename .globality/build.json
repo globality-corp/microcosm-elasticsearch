@@ -4,10 +4,9 @@
     "database": "elasticsearch",
     "name": "microcosm-elasticsearch",
     "pypi": {
-      "enabled": true,
       "repository": "pypi"
     }
   },
   "type": "python-library",
-  "version": "2021.10.0"
+  "version": "2024.52.0"
 }

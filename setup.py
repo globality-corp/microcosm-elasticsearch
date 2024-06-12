@@ -15,20 +15,35 @@ setup(
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     zip_safe=False,
-    python_requires=">=3.6",
+    python_requires=">=3.11",
     keywords="microcosm",
     install_requires=[
         "boto3>=1.7.33",
-        "elasticsearch>=7.0.0",
-        "elasticsearch-dsl>=7.0.0",
-        "microcosm>=2.12.0",
-        "microcosm-flask>=2.8.0",
-        "microcosm-metrics>=2.1.0",
+        "elasticsearch>=7.0.0,<8",
+        "elasticsearch-dsl>=7.0.0,<8",
+        "microcosm>=4.0.0",
+        "microcosm-flask>=6.0.0",
+        "microcosm-metrics>=3.0.0",
         "requests[security]>=2.18.4",
         "urllib3>=1.25.10",
     ],
+    extras_require={
+        "test": [
+            "coverage>=3.7.1",
+            "PyHamcrest>=1.8.5",
+            "pytest-cov>=5.0.0",
+            "pytest>=6.2.5",
+        ],
+        "lint": [
+            "flake8",
+            "flake8-print",
+            "flake8-isort",
+        ],
+        "typehinting": [
+            "mypy",
+        ],
+    },
     setup_requires=[
-        "nose>=1.3.6",
     ],
     dependency_links=[
     ],

@@ -16,7 +16,7 @@ from microcosm_elasticsearch.tests.fixtures import Person, PersonSearchIndex, Pl
 
 class TestIndexSearch:
 
-    def setup(self):
+    def setup_method(self):
         self.graph = create_object_graph("example", testing=True)
         self.search_index = self.graph.example_search_index
         self.person_store = self.graph.person_store

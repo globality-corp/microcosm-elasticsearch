@@ -40,7 +40,7 @@ class IndexRegistry:
             alias_name = IndexRegistry.name_for(self.graph, name=name)
 
         if index_name in self.indexes:
-            raise Exception("Index already registered for name: {}".format(index_name))
+            raise Exception(f"Index already registered for name: {index_name}")
 
         index = Index(
             name=index_name,
