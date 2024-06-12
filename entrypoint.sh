@@ -20,27 +20,23 @@
 
 if [ "$1" = "test" ]; then
    # Install standard test dependencies; YMMV
-   pip --quiet install \
-       .[test] nose PyHamcrest coverage
+   pip --quiet install -e .\[test\]
 
-   apt-get update && apt-get install netcat -y
    echo "Waiting for Elasticsearch to start on 9200..."
    while ! netcat -z elasticsearch 9200; do
      echo "Elasticsearch not up, sleeping for 1s"
      sleep 1
    done
    echo "Elasticsearch launched"
-
-   exec nosetests
+   pytest ${NAME}
 elif [ "$1" = "lint" ]; then
    # Install standard linting dependencies; YMMV
-   pip --quiet install \
-       .[lint] flake8 flake8-print flake8-logging-format flake8-isort
+   pip --quiet install .\[lint\]
    flake8 ${NAME}
 elif [ "$1" = "typehinting" ]; then
    # Install standard type-linting dependencies
-   pip --quiet install mypy
-   mypy ${NAME} --ignore-missing-imports
+   pip --quiet install .\[typehinting\]
+   mypy ${NAME}
 else
    echo "Cannot execute $@"
    exit 3
