@@ -77,7 +77,7 @@ class SquareStore(Store):
 
 class TestPolymorphism:
 
-    def setup(self):
+    def setup_method(self):
         self.graph = create_object_graph("example", testing=True)
         self.circle_store = self.graph.circle_store
         self.shape_store = self.graph.shape_store

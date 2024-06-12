@@ -19,7 +19,6 @@ from hamcrest import (
     raises,
 )
 from microcosm.api import create_object_graph
-from nose.plugins.attrib import attr
 
 from microcosm_elasticsearch.assertions import assert_that_eventually, assert_that_not_eventually
 from microcosm_elasticsearch.errors import ElasticsearchConflictError, ElasticsearchNotFoundError
@@ -28,7 +27,7 @@ from microcosm_elasticsearch.tests.fixtures import Person, Planet, SelectorAttri
 
 class TestStore:
 
-    def setup(self):
+    def setup_method(self):
         self.graph = create_object_graph("example", testing=True)
         self.store = self.graph.person_store
         self.overloaded_store = self.graph.person_overloaded_store
@@ -77,7 +76,6 @@ class TestStore:
             self.store.create(self.steph)
         assert_that(self.store.count(), is_(equal_to(2)))
 
-    @attr("slow")
     def test_count_slow(self):
         self.store.create(self.kevin)
         self.store.create(self.steph)
@@ -134,7 +132,6 @@ class TestStore:
         )
         assert_that(count, is_(equal_to(1)))
 
-    @attr("slow")
     def test_search_slow(self):
         self.store.create(self.kevin)
         assert_that_eventually(
@@ -211,7 +208,6 @@ class TestStore:
             contains(),
         )
 
-    @attr("slow")
     def test_search_filter_out_slow(self):
         self.store.create(self.kevin)
         assert_that_not_eventually(
@@ -318,8 +314,8 @@ class TestStore:
 
 class TestOverloadedStore(TestStore):
 
-    def setup(self):
-        super().setup()
+    def setup_method(self):
+        super().setup_method()
 
         self.person_in_one = Person(
             first="One",
